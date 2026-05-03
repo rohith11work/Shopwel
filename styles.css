@@ -154,6 +154,17 @@ p {
   box-shadow: 0 8px 24px rgba(37, 211, 102, .35);
 }
 
+.btn-yellow {
+  background: var(--yellow);
+  color: var(--gray-900);
+}
+
+.btn-yellow:hover {
+  background: var(--yellow-dark, #e59400); /* Fallback dark yellow */
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245, 166, 35, .35);
+}
+
 .btn-outline {
   background: transparent;
   color: var(--white);
