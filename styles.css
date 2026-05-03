@@ -68,17 +68,17 @@ h4 {
 }
 
 h1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
   font-weight: 900;
 }
 
 h2 {
-  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
   font-weight: 800;
 }
 
 h3 {
-  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
   font-weight: 700;
 }
 
@@ -119,12 +119,13 @@ p {
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 14px 28px;
+  padding: 10px 20px;
   border-radius: 999px;
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   border: none;
   transition: var(--transition);
@@ -334,8 +335,8 @@ p {
 
 /* ─── HERO ─── */
 .hero {
-  min-height: 100vh;
-  padding-top: 80px;
+  padding-top: 100px;
+  padding-bottom: 40px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
@@ -1205,45 +1206,33 @@ footer {
 
 /* ─── FLASH DEAL BANNER ─── */
 .flash-banner {
+  background: var(--yellow-light);
   background: linear-gradient(90deg, #c0392b, #e74c3c, #f39c12);
-  background-size: 200% auto;
-  animation: shimmer 3s linear infinite;
   color: #fff;
   padding: 0;
   overflow: hidden;
   position: relative;
   z-index: 999;
-  margin-top: 68px;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 0%
-  }
-
-  100% {
-    background-position: 200%
-  }
-}
-
-.flash-banner-inner {
+  margin-top: 68px; /* Offset for fixed navbar */
+  height: 40px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 12px 20px;
-  max-width: 1160px;
-  margin: 0 auto;
 }
-
-.flash-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+.marquee-wrapper {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
 }
-
+.marquee-content {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 25s linear infinite;
+  padding-left: 100%;
+}
+@keyframes marquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
 .flash-pill {
   background: rgba(0, 0, 0, .25);
   padding: 4px 12px;
@@ -1252,31 +1241,22 @@ footer {
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  display: inline-block;
+  vertical-align: middle;
 }
-
-.flash-deals-list {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
 .flash-deal-item {
-  display: flex;
+  display: inline-block;
   align-items: center;
-  gap: 6px;
   font-size: .9rem;
   font-weight: 600;
+  margin: 0 8px;
+  vertical-align: middle;
 }
-
 .flash-deal-item .original {
   text-decoration: line-through;
   opacity: .65;
   font-size: .8rem;
 }
-
 .flash-deal-item .sale {
   background: rgba(0, 0, 0, .25);
   padding: 1px 7px;
@@ -1284,44 +1264,29 @@ footer {
   font-size: .8rem;
   font-weight: 800;
 }
-
-.flash-countdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: .85rem;
-  font-weight: 600;
+.flash-sep {
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 4px;
+  display: inline-block;
+  vertical-align: middle;
 }
-
-.flash-countdown-boxes {
-  display: flex;
-  gap: 4px;
-}
-
-.flash-countdown-box {
-  background: rgba(0, 0, 0, .3);
-  border-radius: 6px;
-  padding: 3px 7px;
-  font-family: 'Outfit', monospace;
-  font-weight: 900;
-  min-width: 32px;
-  text-align: center;
-}
-
 .flash-close {
   background: none;
   border: none;
   color: rgba(255, 255, 255, .7);
   cursor: pointer;
   font-size: 1.2rem;
-  padding: 0 4px;
+  padding: 0 16px;
+  height: 100%;
   transition: var(--transition);
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: linear-gradient(90deg, transparent, #f39c12 20%);
 }
-
 .flash-close:hover {
   color: #fff;
 }
-
 .flash-banner.hidden {
   display: none;
 }

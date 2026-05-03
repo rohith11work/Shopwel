@@ -112,27 +112,28 @@
 
     <!-- ════════════════════ FLASH DEAL BANNER ════════════════════ -->
     <div class="flash-banner" id="flashBanner" role="alert" aria-live="polite">
-        <div class="flash-banner-inner">
-            <div class="flash-left">
-                <span class="flash-pill">⚡ Flash Sale</span>
-                <div class="flash-deals-list">
-                    <div class="flash-deal-item">🥛 Amul Milk 1L <span class="original">₹68</span> <span
-                            class="sale">₹59</span></div>
-                    <div class="flash-deal-item">🍅 Tomatoes 1kg <span class="original">₹40</span> <span
-                            class="sale">₹28</span></div>
-                    <div class="flash-deal-item">🥚 Eggs (6pc) <span class="original">₹72</span> <span
-                            class="sale">₹60</span></div>
-                    <div class="flash-deal-item">🍪 Parle-G 800g <span class="original">₹85</span> <span
-                            class="sale">₹70</span></div>
-                </div>
-            </div>
-            <div class="flash-countdown" aria-label="Deal ends in">
-                Ends in: <div class="flash-countdown-boxes"><span class="flash-countdown-box" id="cdH">00</span>:<span
-                        class="flash-countdown-box" id="cdM">00</span>:<span class="flash-countdown-box"
-                        id="cdS">00</span></div>
-                <button class="flash-close" id="flashClose" aria-label="Dismiss flash sale banner">&times;</button>
+        <div class="marquee-wrapper">
+            <div class="marquee-content">
+                <span class="flash-pill">⚡ FLASH SALE ENDS TONIGHT:</span>
+                <span class="flash-deal-item">🥛 Amul Milk 1L <span class="original">₹68</span> <span class="sale">₹59</span></span>
+                <span class="flash-sep">•</span>
+                <span class="flash-deal-item">🍅 Tomatoes 1kg <span class="original">₹40</span> <span class="sale">₹28</span></span>
+                <span class="flash-sep">•</span>
+                <span class="flash-deal-item">🥚 Eggs (6pc) <span class="original">₹72</span> <span class="sale">₹60</span></span>
+                <span class="flash-sep">•</span>
+                <span class="flash-deal-item">🍪 Parle-G 800g <span class="original">₹85</span> <span class="sale">₹70</span></span>
+                <span class="flash-sep" style="margin-right:40px">•</span>
+                <span class="flash-pill">⚡ FLASH SALE ENDS TONIGHT:</span>
+                <span class="flash-deal-item">🥛 Amul Milk 1L <span class="original">₹68</span> <span class="sale">₹59</span></span>
+                <span class="flash-sep">•</span>
+                <span class="flash-deal-item">🍅 Tomatoes 1kg <span class="original">₹40</span> <span class="sale">₹28</span></span>
+                <span class="flash-sep">•</span>
+                <span class="flash-deal-item">🥚 Eggs (6pc) <span class="original">₹72</span> <span class="sale">₹60</span></span>
+                <span class="flash-sep">•</span>
+                <span class="flash-deal-item">🍪 Parle-G 800g <span class="original">₹85</span> <span class="sale">₹70</span></span>
             </div>
         </div>
+        <button class="flash-close" id="flashClose" aria-label="Dismiss">&times;</button>
     </div>
 
     <!-- ════════════════════ HERO ════════════════════ -->
@@ -607,10 +608,15 @@
             <div class="order-layout">
                 <!-- Left: product checklist -->
                 <div class="order-panel" id="orderPanel">
-                    <div class="order-panel-header">
-                        <h3>🛒 Your Shopping List <span class="order-count-badge" id="orderCount">0</span></h3>
-                        <button class="order-reorder-btn" id="reorderBtn" disabled title="Loads your previous order">↩
-                            Quick Reorder</button>
+                    <div class="order-panel-header" style="flex-direction: column; align-items: stretch; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>🛒 Your Shopping List <span class="order-count-badge" id="orderCount">0</span></h3>
+                            <button class="order-reorder-btn" id="reorderBtn" disabled title="Loads your previous order">↩ Quick Reorder</button>
+                        </div>
+                        <div class="order-search" style="position: relative;">
+                            <input type="text" id="orderSearch" placeholder="Search for groceries (e.g. Tomato)..." style="width: 100%; padding: 10px 14px 10px 36px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 0.95rem; font-family: inherit; box-sizing: border-box; transition: border-color 0.3s;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='#e5e7eb'">
+                            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: #9ca3af;">🔍</span>
+                        </div>
                     </div>
                     <div id="dynamicProductsList">
                         <div style="padding:20px; text-align:center; color:var(--text-muted)">Loading fresh products

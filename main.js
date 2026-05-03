@@ -80,13 +80,54 @@ async function loadProducts() {
   }
 }
 
-function renderProducts() {
+// ─── Fuzzy Search Logic ───
+function levenshtein(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+  for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i-1) === a.charAt(j-1)) {
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1));
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function renderProducts(searchQuery = '') {
   const container = document.getElementById('dynamicProductsList');
   if(!container) return;
   container.innerHTML = '';
   
+  const q = searchQuery.trim().toLowerCase();
+  let filteredProducts = allProducts;
+  
+  if (q.length > 0) {
+    filteredProducts = allProducts.filter(p => {
+      const name = p.name.toLowerCase();
+      if (name.includes(q)) return true;
+      if (q.length > 2) {
+        const words = name.split(' ');
+        for (const w of words) {
+          if (w.length > 2 && levenshtein(q, w) <= 2) return true;
+        }
+      }
+      return false;
+    });
+  }
+
+  if (filteredProducts.length === 0) {
+    container.innerHTML = `<div style="padding:40px 20px; text-align:center; color:#6b7280;">No products found matching "${searchQuery}" 😔</div>`;
+    return;
+  }
+  
   const aisles = {};
-  allProducts.forEach(p => {
+  filteredProducts.forEach(p => {
     if(!aisles[p.aisle]) aisles[p.aisle] = [];
     aisles[p.aisle].push(p);
   });
@@ -115,11 +156,13 @@ function renderProducts() {
       itemDiv.className = 'order-item';
       if(isOut) itemDiv.style.opacity = '0.5';
       
+      const isChecked = !!selectedItems[`p_${p.id}`];
       const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.id = `p_${p.id}`;
       cb.dataset.name = p.name;
       cb.disabled = isOut;
+      cb.checked = isChecked;
       
       const label = document.createElement('label');
       label.htmlFor = cb.id;
@@ -129,10 +172,11 @@ function renderProducts() {
         label.innerHTML = `${p.name} <span style="font-size:12px;color:#6b7280;display:block;">₹${p.price.toFixed(2)}</span>`;
       }
       
+      const qtyVal = isChecked ? selectedItems[`p_${p.id}`].qty : 1;
       const qty = document.createElement('input');
       qty.type = 'number';
       qty.className = 'order-qty';
-      qty.value = 1;
+      qty.value = qtyVal;
       qty.min = 1;
       qty.max = 20;
       qty.dataset.id = cb.id;
@@ -361,3 +405,11 @@ function sendRecipeToWhatsApp(e) {
 
 // Initialize dynamic products load
 loadProducts();
+
+// Search Bar Listener
+const orderSearch = document.getElementById('orderSearch');
+if (orderSearch) {
+  orderSearch.addEventListener('input', (e) => {
+    renderProducts(e.target.value);
+  });
+}
