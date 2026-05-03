@@ -1430,10 +1430,20 @@ footer {
   top: 90px;
 }
 
+@keyframes cart-pulse {
+  0% { background: #25d366; }
+  50% { background: #85c226; }
+  100% { background: #25d366; }
+}
+
 .order-summary-header {
   background: #25d366;
   color: #fff;
   padding: 20px 24px;
+  animation: cart-pulse 2.5s infinite alternate ease-in-out;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .order-summary-header h3 {
@@ -2294,10 +2304,11 @@ footer {
   }
   .order-summary-header {
     cursor: pointer;
-    background: var(--green);
     color: white;
     border-radius: 20px 20px 0 0;
     padding: 16px 20px;
+    display: flex;
+    align-items: center;
   }
   .order-summary-header h3 {
     color: white;

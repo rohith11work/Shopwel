@@ -368,8 +368,18 @@ async function confirmWhatsAppOrder(e) {
   btn.style.pointerEvents = "auto";
   closeCheckoutModal();
 
+  saveAddressHistory(address);
   localStorage.setItem('shopwel_last_order', JSON.stringify(items));
   window.open(`https://wa.me/917353003409?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function saveAddressHistory(address) {
+  if (!address) return;
+  let history = JSON.parse(localStorage.getItem('shopwel_address_history') || '[]');
+  history = history.filter(a => a !== address);
+  history.unshift(address);
+  if (history.length > 5) history.pop();
+  localStorage.setItem('shopwel_address_history', JSON.stringify(history));
 }
 
 function clearOrder() {
@@ -383,6 +393,16 @@ function clearOrder() {
   const saved = localStorage.getItem('shopwel_address');
   const addrInput = document.getElementById('orderAddress');
   if (saved && addrInput) addrInput.value = saved;
+
+  const history = JSON.parse(localStorage.getItem('shopwel_address_history') || '[]');
+  const datalist = document.getElementById('savedAddresses');
+  if (datalist && history.length > 0) {
+    history.forEach(addr => {
+      const option = document.createElement('option');
+      option.value = addr;
+      datalist.appendChild(option);
+    });
+  }
 })();
 
 // ─── Recipe ───
@@ -401,6 +421,21 @@ function sendRecipeToWhatsApp(e) {
   if (!selected.length) { alert('Please select at least one ingredient!'); return; }
   const msg = `ORDER:\nPaneer Butter Masala – Ingredients\n\n${selected.join('\n')}`;
   window.open(`https://wa.me/917353003409?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ─── Cart Summary Click ───
+function handleCartSummaryClick(headerEl) {
+  const items = Object.keys(selectedItems);
+  if (items.length === 0) {
+    const orderPanel = document.getElementById('orderPanel');
+    if (orderPanel) {
+      const y = orderPanel.getBoundingClientRect().top + window.scrollY - 70;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+    headerEl.parentElement.classList.remove('expanded');
+  } else {
+    headerEl.parentElement.classList.toggle('expanded');
+  }
 }
 
 // Initialize dynamic products load

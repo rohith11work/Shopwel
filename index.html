@@ -626,7 +626,7 @@
                 
                 <!-- Right: order summary + send -->
                 <div class="order-summary">
-                    <div class="order-summary-header" onclick="this.parentElement.classList.toggle('expanded')">
+                    <div class="order-summary-header" onclick="handleCartSummaryClick(this)">
                         <div style="flex:1">
                             <h3>📋 Your Cart Summary</h3>
                             <p class="hide-on-mobile">Items will be sent directly to our WhatsApp</p>
@@ -639,9 +639,10 @@
                     </div>
                     <div class="order-note-area">
                         <label for="orderAddress">📍 Delivery Address</label>
-                        <input type="text" id="orderAddress" placeholder="Enter your full delivery address"
+                        <input type="text" id="orderAddress" list="savedAddresses" placeholder="Enter your full delivery address"
                             style="width:100%;padding:10px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:.95rem;font-family:inherit;margin-bottom:10px;box-sizing:border-box;"
-                            oninput="localStorage.setItem('shopwel_address',this.value)" />
+                            oninput="localStorage.setItem('shopwel_address',this.value)" autocomplete="off" />
+                        <datalist id="savedAddresses"></datalist>
                         <label for="orderNote">Special instructions (optional)</label>
                         <textarea id="orderNote"
                             placeholder="e.g. Please deliver before 7 PM..." style="min-height:50px"></textarea>
