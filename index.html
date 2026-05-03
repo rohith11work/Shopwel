@@ -175,8 +175,13 @@
     </section>
 
     <!-- ════════════════════ ABOUT ════════════════════ -->
-    <section class="section" id="about" aria-label="About Shopwel">
+    <section class="section mobile-collapsible" id="about" aria-label="About Shopwel">
         <div class="container">
+            <button class="mobile-collapse-btn hide-on-desktop" onclick="this.parentElement.parentElement.classList.toggle('expanded')">
+                📖 About Us
+                <span class="chevron">▼</span>
+            </button>
+            <div class="mobile-collapse-content">
             <div class="about-grid">
                 <div class="reveal">
                     <span class="tag">Who We Are</span>
@@ -217,13 +222,19 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- ════════════════════ PRODUCTS ════════════════════ -->
-    <section class="section section-alt" id="products" aria-label="Product categories">
+    <section class="section section-alt mobile-collapsible" id="products" aria-label="Product categories">
         <div class="container">
+            <button class="mobile-collapse-btn hide-on-desktop" onclick="this.parentElement.parentElement.classList.toggle('expanded')">
+                🛍️ Our Products
+                <span class="chevron">▼</span>
+            </button>
+            <div class="mobile-collapse-content">
             <div class="section-heading reveal">
                 <span class="tag">What We Offer</span>
                 <h2>Everything Your Home Needs</h2>
@@ -291,13 +302,19 @@
                     </div>
                 </article>
 
+                </div>
             </div>
         </div>
     </section>
 
     <!-- ════════════════════ SERVICES ════════════════════ -->
-    <section class="section" id="services" aria-label="Our services">
+    <section class="section mobile-collapsible" id="services" aria-label="Our services">
         <div class="container">
+            <button class="mobile-collapse-btn hide-on-desktop" onclick="this.parentElement.parentElement.classList.toggle('expanded')">
+                🚗 Services & Delivery
+                <span class="chevron">▼</span>
+            </button>
+            <div class="mobile-collapse-content">
             <div class="section-heading reveal">
                 <span class="tag">How We Serve You</span>
                 <h2>Convenient Shopping, Your Way</h2>
@@ -358,13 +375,19 @@
                     </svg>
                     Order Now on WhatsApp
                 </a>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- ════════════════════ WHY CHOOSE US ════════════════════ -->
-    <section class="section section-alt" id="why" aria-label="Why choose Shopwel">
+    <section class="section section-alt mobile-collapsible" id="why" aria-label="Why choose Shopwel">
         <div class="container">
+            <button class="mobile-collapse-btn hide-on-desktop" onclick="this.parentElement.parentElement.classList.toggle('expanded')">
+                🤔 Why Choose Shopwel
+                <span class="chevron">▼</span>
+            </button>
+            <div class="mobile-collapse-content">
             <div class="why-grid">
                 <div>
                     <span class="tag reveal">Why Shopwel?</span>
@@ -416,13 +439,19 @@
                     <img src="images/shopwel-store.jpg"
                         alt="Inside Shopwel Supermarket – well-stocked shelves and busy store" loading="lazy" />
                 </div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- ════════════════════ REVIEWS ════════════════════ -->
-    <section class="section" id="reviews" aria-label="Customer reviews">
+    <section class="section mobile-collapsible" id="reviews" aria-label="Customer reviews">
         <div class="container">
+            <button class="mobile-collapse-btn hide-on-desktop" onclick="this.parentElement.parentElement.classList.toggle('expanded')">
+                ⭐ Customer Reviews
+                <span class="chevron">▼</span>
+            </button>
+            <div class="mobile-collapse-content">
             <div class="reviews-header reveal">
                 <span class="tag">What Customers Say</span>
                 <h2>Loved by 1,118+ Families</h2>
@@ -475,6 +504,7 @@
                     </div>
                 </div>
 
+                </div>
             </div>
         </div>
     </section>
@@ -586,9 +616,13 @@
                 
                 <!-- Right: order summary + send -->
                 <div class="order-summary">
-                    <div class="order-summary-header">
-                        <h3>📋 Your Order Summary</h3>
-                        <p>Items will be sent directly to our WhatsApp</p>
+                    <div class="order-summary-header" onclick="this.parentElement.classList.toggle('expanded')">
+                        <div style="flex:1">
+                            <h3>📋 Your Cart Summary</h3>
+                            <p class="hide-on-mobile">Items will be sent directly to our WhatsApp</p>
+                            <p class="hide-on-desktop" style="color:rgba(255,255,255,0.9); font-weight:600; margin-top:2px;">Tap to expand & send order</p>
+                        </div>
+                        <span class="mobile-cart-icon hide-on-desktop" style="font-size:1.5rem">🛒</span>
                     </div>
                     <div class="order-list" id="orderList">
                         <div class="order-empty" id="orderEmpty">Tick items on the left to add them here ✅</div>
@@ -619,8 +653,13 @@
     </section>
 
     <!-- ════════════════════ RECIPE OF THE WEEK ════════════════════ -->
-    <section class="section recipe-section" id="recipe" aria-label="Recipe of the week">
+    <section class="section recipe-section mobile-collapsible" id="recipe" aria-label="Recipe of the week">
         <div class="container">
+            <button class="mobile-collapse-btn hide-on-desktop" onclick="this.parentElement.parentElement.classList.toggle('expanded')">
+                🍳 Recipe of the Week
+                <span class="chevron">▼</span>
+            </button>
+            <div class="mobile-collapse-content">
             <div class="section-heading reveal">
                 <span class="tag">Recipe of the Week</span>
                 <h2>Cook Tonight – Order Ingredients Now</h2>
@@ -679,6 +718,7 @@
                             Send Ingredients to WhatsApp
                         </a>
                     </div>
+                </div>
                 </div>
             </div>
         </div>

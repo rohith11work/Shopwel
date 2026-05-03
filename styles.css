@@ -2255,4 +2255,94 @@ footer {
   .cm-body {
     grid-template-columns: 1fr;
   }
+
+  /* Mobile Collapsible Sections */
+  .mobile-collapsible {
+    padding: 12px 0;
+  }
+  .mobile-collapse-content {
+    display: none;
+    padding-top: 24px;
+  }
+  .mobile-collapsible.expanded .mobile-collapse-content {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  .mobile-collapse-btn {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-900);
+    font-size: 1.1rem;
+    font-weight: 700;
+    align-items: center;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .mobile-collapse-btn:active {
+    background: var(--gray-100);
+  }
+  .mobile-collapsible.expanded .chevron {
+    transform: rotate(180deg);
+  }
+  .chevron {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+    color: var(--gray-500);
+  }
+
+  /* Order Summary Mobile Bottom Sheet */
+  .order-summary {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(calc(100% - 75px));
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--white);
+    margin: 0;
+  }
+  .order-summary.expanded {
+    transform: translateY(0);
+  }
+  .order-summary-header {
+    cursor: pointer;
+    background: var(--green);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    padding: 16px 20px;
+  }
+  .order-summary-header h3 {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+  }
+  .order-summary-header p {
+    color: rgba(255, 255, 255, 0.9);
+  }
+  #orderPanel {
+    padding-bottom: 100px;
+  }
+  
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* ─── DESKTOP ONLY OVERRIDES ─── */
+@media (min-width: 641px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
 }
