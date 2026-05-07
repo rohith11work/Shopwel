@@ -244,6 +244,8 @@ function openCheckoutModal(e) {
   const items = Object.values(selectedItems);
   if (items.length === 0) { alert('Please select at least one item!'); return; }
   const address = document.getElementById('orderAddress').value.trim();
+  const phone   = document.getElementById('orderPhone').value.trim();
+  if (!phone)   { alert('Please enter your phone number before sending.'); document.getElementById('orderPhone').focus(); return; }
   if (!address) { alert('Please enter your delivery address before sending.'); document.getElementById('orderAddress').focus(); return; }
   
   renderCheckoutBill();
@@ -330,8 +332,10 @@ async function confirmWhatsAppOrder(e) {
   e.preventDefault();
   const items = Object.values(selectedItems);
   if (items.length === 0) { alert('Please select at least one item!'); return; }
-  const note = document.getElementById('orderNote').value.trim();
+  const note    = document.getElementById('orderNote').value.trim();
   const address = document.getElementById('orderAddress').value.trim();
+  const phone   = document.getElementById('orderPhone').value.trim();
+  if (!phone)   { alert('Please enter your phone number before sending.'); return; }
   if (!address) { alert('Please enter your delivery address before sending.'); return; }
 
   const btn = document.getElementById('cmConfirmBtn');
@@ -345,7 +349,8 @@ async function confirmWhatsAppOrder(e) {
     msg += `• ${i.name} x${i.qty} (₹${i.price * i.qty})\n`; 
   });
   msg += `\nEstimated Total: ₹${total.toFixed(2)}`;
-  msg += `\n\n📍 Address: ${address}`;
+  msg += `\n\n📞 Phone: ${phone}`;
+  msg += `\n📍 Address: ${address}`;
   if (note) msg += `\n📝 Note: ${note}`;
 
   try {
@@ -353,11 +358,11 @@ async function confirmWhatsAppOrder(e) {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        phone: "Customer",
-        name: "Website User",
+        phone:   phone,
+        name:    "Website User",
         address: address,
-        items: items,
-        total: total
+        items:   items,
+        total:   total
       })
     });
   } catch(err) {

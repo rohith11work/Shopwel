@@ -587,7 +587,7 @@
 
                     <div class="map-container reveal">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.9760!2d77.5315!3d12.8942!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae3f0000000001%3A0x1234567890abcdef!2sDream+Paradise%2C+Gubbalala+Main+Rd%2C+Subramanyapura%2C+Bengaluru%2C+Karnataka+560061!5e0!3m2!1sen!2sin!4v1700000000000"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.123456789!2d77.5401757!3d12.8917923!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae3feb84f889b5%3A0xfd8b4acd073fb048!2sShopwel+Supermarket!5e0!3m2!1sen!2sin!4v1746600000000"
                             width="100%" height="360" style="border:0;" allowfullscreen="" loading="lazy"
                             referrerpolicy="no-referrer-when-downgrade"
                             title="Shopwel Supermarket location on Google Maps"></iframe>
@@ -638,6 +638,11 @@
                         <div class="order-empty" id="orderEmpty">Tick items on the left to add them here ✅</div>
                     </div>
                     <div class="order-note-area">
+                        <label for="orderPhone">📞 Your Phone Number</label>
+                        <input type="tel" id="orderPhone" placeholder="e.g. 98765 43210"
+                            style="width:100%;padding:10px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:.95rem;font-family:inherit;margin-bottom:10px;box-sizing:border-box;"
+                            oninput="localStorage.setItem('shopwel_phone',this.value)"
+                            value="" autocomplete="tel" />
                         <label for="orderAddress">📍 Delivery Address</label>
                         <input type="text" id="orderAddress" list="savedAddresses" placeholder="Enter your full delivery address"
                             style="width:100%;padding:10px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:.95rem;font-family:inherit;margin-bottom:10px;box-sizing:border-box;"
