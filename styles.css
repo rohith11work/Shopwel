@@ -453,6 +453,111 @@ p {
   align-items: center;
 }
 
+/* ─── ABOUT + LOCATION MERGED ─── */
+.about-location-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.about-location-header h2 {
+  margin-top: 8px;
+}
+
+.about-location-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr 1.4fr;
+  gap: 28px;
+  align-items: stretch;
+  min-height: 480px;
+}
+
+/* LEFT column: stat cards 2x2 + veggie image */
+.abl-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.about-stats-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat-card-sm {
+  background: var(--green-light);
+  padding: 14px 12px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  transition: var(--transition);
+}
+
+.stat-card-sm:hover {
+  background: var(--green);
+  color: var(--white);
+}
+
+.stat-card-sm:hover .number,
+.stat-card-sm:hover .label {
+  color: var(--white);
+}
+
+.stat-card-sm .number {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--green);
+  line-height: 1.1;
+}
+
+.stat-card-sm .label {
+  font-size: .78rem;
+  color: var(--gray-500);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.abl-veggie-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 200px;
+}
+
+.abl-veggie-wrap img {
+  border-radius: var(--radius);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  box-shadow: var(--shadow);
+}
+
+/* CENTER column: address + hours */
+.abl-center {
+  display: flex;
+  flex-direction: column;
+}
+
+/* RIGHT column: map */
+.abl-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.abl-right .map-container {
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  min-height: 460px;
+}
+
+.abl-right .map-container iframe {
+  border-radius: 16px;
+  display: block;
+  height: 100%;
+  min-height: 460px;
+}
+
 .about-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1165,8 +1270,14 @@ footer {
 
   .about-grid,
   .why-grid,
-  .location-grid {
+  .location-grid,
+  .about-location-grid {
     grid-template-columns: 1fr;
+  }
+
+  .abl-right .map-container,
+  .abl-right .map-container iframe {
+    min-height: 280px;
   }
 
   .about-image,
