@@ -515,6 +515,68 @@
             alert("Failed to delete product.");
         }
     }
+
+    // ─── Auto-refresh orders every 2 minutes ───
+    let autoRefreshSeconds = 120;
+    let autoRefreshInterval = null;
+    let countdownInterval = null;
+
+    function startAutoRefresh() {
+        // Add countdown display to navbar
+        const navbar = document.querySelector('.navbar');
+        if (navbar && !document.getElementById('refreshCountdown')) {
+            const pill = document.createElement('span');
+            pill.id = 'refreshCountdown';
+            pill.style = 'font-size:12px; color:rgba(255,255,255,0.7); margin-left:12px;';
+            navbar.querySelector('div').appendChild(pill);
+        }
+
+        autoRefreshSeconds = 120;
+        updateCountdownDisplay();
+
+        // Countdown tick every second
+        countdownInterval = setInterval(() => {
+            autoRefreshSeconds--;
+            updateCountdownDisplay();
+            if (autoRefreshSeconds <= 0) {
+                autoRefreshSeconds = 120;
+                // Only refresh orders if modal is NOT open
+                const modalOpen = document.getElementById('productModal').style.display === 'flex';
+                if (!modalOpen) {
+                    const activeView = document.querySelector('.view.active');
+                    if (activeView && activeView.id === 'view-orders') {
+                        loadOrders();
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    function updateCountdownDisplay() {
+        const el = document.getElementById('refreshCountdown');
+        if (el) el.textContent = `⟳ Auto-refresh in ${autoRefreshSeconds}s`;
+    }
+
+    function stopAutoRefresh() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const el = document.getElementById('refreshCountdown');
+        if (el) el.remove();
+    }
+
+    // Hook into login/logout
+    const _origLoadAllData = loadAllData;
+    window.loadAllData = function() {
+        _origLoadAllData();
+        stopAutoRefresh();
+        startAutoRefresh();
+    };
+
+    const _origLogout = logout;
+    window.logout = function() {
+        stopAutoRefresh();
+        _origLogout();
+    };
+
 </script>
 </body>
 </html>
