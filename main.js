@@ -105,7 +105,7 @@ function renderProducts(searchQuery = '') {
   container.innerHTML = '';
   
   const q = searchQuery.trim().toLowerCase();
-  let filteredProducts = allProducts;
+  let filteredProducts = [];
   
   if (q.length > 0) {
     filteredProducts = allProducts.filter(p => {
@@ -119,6 +119,8 @@ function renderProducts(searchQuery = '') {
       }
       return false;
     });
+  } else {
+    filteredProducts = allProducts.filter(p => p.stock_status !== 'out_of_stock');
   }
 
   if (filteredProducts.length === 0) {
