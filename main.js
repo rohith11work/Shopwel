@@ -395,12 +395,19 @@ function clearOrder() {
   updateOrderSummary();
 }
 
-// ─── Restore saved address ───
+// ─── Restore saved address & phone ───
 (function () {
-  const saved = localStorage.getItem('shopwel_address');
-  const addrInput = document.getElementById('orderAddress');
-  if (saved && addrInput) addrInput.value = saved;
+  // Restore phone number
+  const savedPhone = localStorage.getItem('shopwel_phone');
+  const phoneInput = document.getElementById('orderPhone');
+  if (savedPhone && phoneInput) phoneInput.value = savedPhone;
 
+  // Restore address
+  const savedAddr = localStorage.getItem('shopwel_address');
+  const addrInput = document.getElementById('orderAddress');
+  if (savedAddr && addrInput) addrInput.value = savedAddr;
+
+  // Restore address history into datalist
   const history = JSON.parse(localStorage.getItem('shopwel_address_history') || '[]');
   const datalist = document.getElementById('savedAddresses');
   if (datalist && history.length > 0) {
