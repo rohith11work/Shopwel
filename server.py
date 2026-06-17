@@ -16,7 +16,7 @@ from datetime import datetime
 # ─── Config ────────────────────────────────────────────
 PORT        = int(os.environ.get("PORT", 8080))
 DB_FILE     = os.path.join(os.path.dirname(__file__), "shopwel.db")
-ADMIN_KEY   = "shopwel2025"       # Change this before going live!
+ADMIN_KEY   = os.environ.get("SHOPWEL_ADMIN_KEY", "shopwel2025")
 STATIC_DIR  = os.path.dirname(os.path.abspath(__file__))
 
 # ─── Initial Seed Data ─────────────────────────────────
