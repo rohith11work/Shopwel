@@ -65,14 +65,17 @@ getStoreStatus();
 
 // ─── Smart Order ───
 let selectedItems = {};
-let allProducts = [];
+let allProducts = [];   // cache for impulse-upsell lookup (populated after search)
+let aisleCountsCache = {}; // total products per aisle (from default view)
 
 async function loadProducts() {
   try {
-    const res = await fetch('/api/products');
+    // Default view: first 8 products per category
+    const res = await fetch('/api/products?default=true');
     const data = await res.json();
     allProducts = data.products;
-    renderProducts();
+    aisleCountsCache = data.aisle_counts || {};
+    renderProducts(data.products, '', data.aisle_counts);
   } catch (e) {
     console.error("Failed to load products", e);
     const c = document.getElementById('dynamicProductsList');
@@ -80,56 +83,50 @@ async function loadProducts() {
   }
 }
 
-// ─── Fuzzy Search Logic ───
-function levenshtein(a, b) {
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-  for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i-1) === a.charAt(j-1)) {
-        matrix[i][j] = matrix[i-1][j-1];
-      } else {
-        matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1));
-      }
-    }
+// ─── Server-Side Search ───
+let _searchTimer = null;
+
+async function doSearch(query) {
+  const q = query.trim();
+  const container = document.getElementById('dynamicProductsList');
+  if (!container) return;
+
+  if (q.length === 0) {
+    return loadProducts();
   }
-  return matrix[b.length][a.length];
+
+  container.innerHTML = '<div style="text-align:center;padding:30px;color:#6b7280;">Searching…</div>';
+  try {
+    const res = await fetch(`/api/products?search=${encodeURIComponent(q)}&limit=60`);
+    const data = await res.json();
+    allProducts = [...allProducts, ...data.products].filter(
+      (p, i, arr) => arr.findIndex(x => x.id === p.id) === i
+    );
+    renderProducts(data.products, q, {});
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:red;">Search failed. Please try again.</div>';
+  }
 }
 
-function renderProducts(searchQuery = '') {
+function renderProducts(products, searchQuery = '', aisleCountsArg = {}) {
   const container = document.getElementById('dynamicProductsList');
   if(!container) return;
   container.innerHTML = '';
-  
-  const q = searchQuery.trim().toLowerCase();
-  let filteredProducts = [];
-  
-  if (q.length > 0) {
-    filteredProducts = allProducts.filter(p => {
-      const name = p.name.toLowerCase();
-      if (name.includes(q)) return true;
-      if (q.length > 2) {
-        const words = name.split(' ');
-        for (const w of words) {
-          if (w.length > 2 && levenshtein(q, w) <= 2) return true;
-        }
-      }
-      return false;
-    });
-  } else {
-    filteredProducts = allProducts.filter(p => p.stock_status !== 'out_of_stock');
-  }
 
-  if (filteredProducts.length === 0) {
+  const aisleHints = Object.keys(aisleCountsArg).length > 0 ? aisleCountsArg : aisleCountsCache;
+  const isDefaultView = !searchQuery;
+
+  const visibleProds = isDefaultView
+    ? products.filter(p => p.stock_status !== 'out_of_stock')
+    : products;
+
+  if (visibleProds.length === 0) {
     container.innerHTML = `<div style="padding:40px 20px; text-align:center; color:#6b7280;">No products found matching "${searchQuery}" 😔</div>`;
     return;
   }
   
   const aisles = {};
-  filteredProducts.forEach(p => {
+  visibleProds.forEach(p => {
     if(!aisles[p.aisle]) aisles[p.aisle] = [];
     aisles[p.aisle].push(p);
   });
@@ -207,6 +204,14 @@ function renderProducts(searchQuery = '') {
       });
     });
     catDiv.appendChild(grid);
+
+    if (isDefaultView && aisleHints[aisle] && aisleHints[aisle] > prods.length) {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:12px;color:#6b7280;padding:6px 0 2px;text-align:center;';
+      hint.innerHTML = `🔍 Search to see all <b>${aisleHints[aisle]}</b> products in ${aisle}`;
+      catDiv.appendChild(hint);
+    }
+
     container.appendChild(catDiv);
   }
 }
@@ -455,10 +460,11 @@ function handleCartSummaryClick(headerEl) {
 // Initialize dynamic products load
 loadProducts();
 
-// Search Bar Listener
+// Search Bar Listener with 300ms debounce
 const orderSearch = document.getElementById('orderSearch');
 if (orderSearch) {
   orderSearch.addEventListener('input', (e) => {
-    renderProducts(e.target.value);
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => doSearch(e.target.value), 300);
   });
 }

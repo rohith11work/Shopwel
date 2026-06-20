@@ -101,6 +101,34 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
         
         #errorMsg { color: var(--danger); margin-top: 15px; font-size: 14px; }
+
+        /* CSV Import Card */
+        .import-card {
+            background: var(--card); border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px; overflow: hidden;
+        }
+        .import-header {
+            padding: 16px 24px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none;
+            border-bottom: 1px solid transparent; transition: border-color 0.2s;
+        }
+        .import-header.open { border-color: var(--border); }
+        .import-header h3 { font-size: 15px; color: var(--text); margin: 0; }
+        .import-header .toggle-icon { font-size: 18px; transition: transform 0.25s; }
+        .import-header.open .toggle-icon { transform: rotate(180deg); }
+        .import-body { display: none; padding: 20px 24px; }
+        .import-body.open { display: block; }
+        .import-step { margin-bottom: 14px; }
+        .import-step label { display: block; font-weight: 500; font-size: 13px; margin-bottom: 6px; color: #374151; }
+        .import-status { margin-top: 12px; padding: 10px 14px; border-radius: 7px; font-size: 13px; display: none; }
+        .import-status.success { background: #d1fae5; color: #065f46; display: block; }
+        .import-status.error   { background: #fee2e2; color: #991b1b; display: block; }
+        .import-status.info    { background: #eff6ff; color: #1e40af; display: block; }
+        .preview-table-wrap { overflow-x: auto; max-height: 240px; overflow-y: auto; margin-top: 10px; }
+        .preview-table-wrap table { margin-top: 0; }
+        /* Admin search bar */
+        .admin-search { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; width: 260px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -170,10 +198,46 @@
 
             <!-- PRODUCTS VIEW -->
             <div id="view-products" class="view">
+
+                <!-- Bulk CSV Import Card -->
+                <div class="import-card">
+                    <div class="import-header" id="importHeader" onclick="toggleImportCard()">
+                        <h3>📥 Bulk Import via CSV</h3>
+                        <span class="toggle-icon">▾</span>
+                    </div>
+                    <div class="import-body" id="importBody">
+                        <div class="import-step">
+                            <label>1. Download Template</label>
+                            <button class="btn" style="width:auto" onclick="downloadCsvTemplate()">⬇ Download CSV Template</button>
+                            <small style="color:#6b7280;display:block;margin-top:4px;">Format: <code>Category,Product Name,Price</code></small>
+                        </div>
+                        <div class="import-step">
+                            <label>2. Upload Filled CSV</label>
+                            <input type="file" id="csvFileInput" accept=".csv,text/csv" onchange="parseCsvFile(event)" class="input-box" style="padding:8px;">
+                        </div>
+                        <div id="csvPreviewWrap" style="display:none;">
+                            <div class="import-step">
+                                <label>3. Preview (<span id="csvRowCount">0</span> rows)</label>
+                                <div class="preview-table-wrap">
+                                    <table id="csvPreviewTable">
+                                        <thead><tr><th>#</th><th>Category</th><th>Product Name</th><th>Price (₹)</th></tr></thead>
+                                        <tbody id="csvPreviewBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <button class="btn" style="width:auto" onclick="confirmBulkImport()">✅ Import All to Database</button>
+                        </div>
+                        <div id="importStatus" class="import-status"></div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h2>Product Management</h2>
-                        <button class="btn" style="width:auto" onclick="openProductModal()">+ Add Product</button>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <input type="text" id="adminProductSearch" class="admin-search" placeholder="🔍 Filter products…" oninput="filterAdminProducts(this.value)">
+                            <button class="btn" style="width:auto" onclick="openProductModal()">+ Add Product</button>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table>
@@ -411,8 +475,10 @@
 
     /* ─── Products ────────────────────────────── */
     let currentProducts = [];
+    let _parsedCsvRows = [];
     
     async function loadProducts() {
+        // Admin always fetches ALL products (no ?default=true)
         const res = await fetch(`/api/products`);
         const data = await res.json();
         currentProducts = data.products;
@@ -423,10 +489,24 @@
             datalist.innerHTML = uniqueAisles.map(aisle => `<option value="${aisle}">`).join('');
         }
         
+        renderProductsTable(currentProducts);
+    }
+
+    function filterAdminProducts(query) {
+        const q = query.trim().toLowerCase();
+        if (!q) return renderProductsTable(currentProducts);
+        const filtered = currentProducts.filter(p =>
+            p.name.toLowerCase().includes(q) ||
+            p.aisle.toLowerCase().includes(q)
+        );
+        renderProductsTable(filtered);
+    }
+
+    function renderProductsTable(products) {
         const tbody = document.getElementById('productsTableBody');
         tbody.innerHTML = '';
         
-        data.products.forEach(p => {
+        products.forEach(p => {
             const isOut = p.stock_status === 'out_of_stock';
             const badge = isOut ? '<span class="badge out-of-stock">Out of Stock</span>' : '<span class="badge in-stock">In Stock</span>';
             tbody.innerHTML += `
@@ -443,6 +523,100 @@
                 </tr>
             `;
         });
+    }
+
+    /* ─── CSV Bulk Import ─────────────────────── */
+    function toggleImportCard() {
+        const header = document.getElementById('importHeader');
+        const body   = document.getElementById('importBody');
+        header.classList.toggle('open');
+        body.classList.toggle('open');
+    }
+
+    function downloadCsvTemplate() {
+        const rows = [
+            'Category,Product Name,Price',
+            'Fresh Produce,Example Apples 1kg,60',
+            'Dairy,Example Yogurt 200g,35'
+        ];
+        const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'shopwel_import_template.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    function parseCsvFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const lines = e.target.result.trim().split(/\r?\n/);
+            // Skip header row
+            const dataLines = lines.slice(1).filter(l => l.trim().length > 0);
+            _parsedCsvRows = [];
+            const tbody = document.getElementById('csvPreviewBody');
+            tbody.innerHTML = '';
+
+            dataLines.forEach((line, idx) => {
+                // Basic CSV split — handles quoted fields
+                const cols = line.match(/(?:"([^"]*)"|([^,]+)|(?<=,)(?=,)|^(?=,)|(?<=,)$)/g)
+                    || line.split(',');
+                const aisle = (cols[0] || '').replace(/^"|"$/g, '').trim();
+                const name  = (cols[1] || '').replace(/^"|"$/g, '').trim();
+                const price = parseFloat((cols[2] || '0').replace(/^"|"$/g, '').trim()) || 0;
+
+                if (!name) return; // skip blank rows
+                _parsedCsvRows.push({ aisle, name, price });
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${aisle}</td>
+                        <td>${name}</td>
+                        <td>₹${price.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('csvRowCount').textContent = _parsedCsvRows.length;
+            document.getElementById('csvPreviewWrap').style.display = 'block';
+            setImportStatus('', '');
+        };
+        reader.readAsText(file);
+    }
+
+    function setImportStatus(msg, type) {
+        const el = document.getElementById('importStatus');
+        el.className = `import-status${type ? ' ' + type : ''}`;
+        el.textContent = msg;
+        if (!msg) el.style.display = 'none';
+    }
+
+    async function confirmBulkImport() {
+        if (_parsedCsvRows.length === 0) {
+            return setImportStatus('No valid rows to import.', 'error');
+        }
+        setImportStatus(`Importing ${_parsedCsvRows.length} products…`, 'info');
+        try {
+            const res = await fetch('/api/products/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_key: _key, products: _parsedCsvRows })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setImportStatus(`✅ Successfully imported ${data.inserted} products!`, 'success');
+                _parsedCsvRows = [];
+                document.getElementById('csvPreviewWrap').style.display = 'none';
+                document.getElementById('csvFileInput').value = '';
+                loadProducts();
+            } else {
+                setImportStatus(`❌ Error: ${data.error || 'Unknown error'}`, 'error');
+            }
+        } catch(err) {
+            setImportStatus(`❌ Network error: ${err.message}`, 'error');
+        }
     }
 
     function openProductModal() {

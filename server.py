@@ -80,6 +80,9 @@ def init_db():
         created_at TEXT NOT NULL,
         status TEXT DEFAULT 'pending'
     )""")
+    # Index for fast LIKE searches on product name at scale
+    c.execute("CREATE INDEX IF NOT EXISTS idx_products_name ON products (name)")
+    c.execute("CREATE INDEX IF NOT EXISTS idx_products_aisle ON products (aisle)")
     
     if is_new:
         print("Seeding initial products...")
@@ -130,11 +133,69 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         qs     = urllib.parse.parse_qs(parsed.query)
 
+        # GET /api/aisles — distinct category list
+        if parsed.path == "/api/aisles":
+            conn = sqlite3.connect(DB_FILE)
+            rows = conn.execute("SELECT DISTINCT aisle FROM products ORDER BY aisle").fetchall()
+            conn.close()
+            return self.send_json(200, {"aisles": [r[0] for r in rows]})
+
         # GET /api/products
+        # Supports ?search=, ?aisle=, ?default=true
+        # No params → return all (backward-compat with admin panel)
         if parsed.path == "/api/products":
+            search  = qs.get("search",  [None])[0]
+            aisle   = qs.get("aisle",   [None])[0]
+            default = qs.get("default", [None])[0]  # "true" → 8 per category
+            limit   = int(qs.get("limit", ["60"])[0])
+
             conn = sqlite3.connect(DB_FILE)
             conn.row_factory = sqlite3.Row
-            rows = conn.execute("SELECT * FROM products ORDER BY aisle, name").fetchall()
+
+            if default == "true":
+                # Return the first 8 products per category (by name order)
+                # Use a window-function-free approach for broad SQLite compat
+                all_rows = conn.execute(
+                    "SELECT * FROM products ORDER BY aisle, name"
+                ).fetchall()
+                conn.close()
+                per_aisle = {}
+                for r in all_rows:
+                    a = r["aisle"]
+                    if a not in per_aisle:
+                        per_aisle[a] = []
+                    if len(per_aisle[a]) < 8:
+                        per_aisle[a].append(dict(r))
+                # Also return per-aisle total counts for the hint
+                conn2 = sqlite3.connect(DB_FILE)
+                count_rows = conn2.execute(
+                    "SELECT aisle, COUNT(*) as cnt FROM products GROUP BY aisle"
+                ).fetchall()
+                conn2.close()
+                aisle_counts = {r[0]: r[1] for r in count_rows}
+                products = [p for prods in per_aisle.values() for p in prods]
+                return self.send_json(200, {
+                    "products": products,
+                    "aisle_counts": aisle_counts
+                })
+
+            # Build dynamic query for search / aisle filter
+            query  = "SELECT * FROM products"
+            params = []
+            clauses = []
+            if search:
+                clauses.append("name LIKE ?")
+                params.append(f"%{search}%")
+            if aisle:
+                clauses.append("aisle = ?")
+                params.append(aisle)
+            if clauses:
+                query += " WHERE " + " AND ".join(clauses)
+            query += " ORDER BY aisle, name"
+            if search or aisle:
+                query += f" LIMIT {int(limit)}"
+
+            rows = conn.execute(query, params).fetchall()
             conn.close()
             products = [dict(r) for r in rows]
             return self.send_json(200, {"products": products})
@@ -270,6 +331,42 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
             conn.close()
             
             return self.send_json(201, {"success": True, "id": prod_id})
+
+        # POST /api/products/bulk — insert many products in one transaction
+        if parsed.path == "/api/products/bulk":
+            body = self.parse_body()
+            key = str(body.get("admin_key", ""))
+            if key != ADMIN_KEY:
+                return self.send_json(403, {"error": "Invalid admin key"})
+
+            products = body.get("products", [])
+            if not isinstance(products, list) or len(products) == 0:
+                return self.send_json(400, {"error": "No products provided"})
+
+            inserted = 0
+            conn = sqlite3.connect(DB_FILE)
+            c = conn.cursor()
+            try:
+                c.execute("BEGIN")
+                for p in products:
+                    aisle = str(p.get("aisle", "Default")).strip()
+                    name  = str(p.get("name", "")).strip()
+                    price = float(p.get("price", 0))
+                    if not name:
+                        continue
+                    c.execute(
+                        "INSERT INTO products (aisle, name, price, stock_status) VALUES (?, ?, ?, 'in_stock')",
+                        (aisle, name, price)
+                    )
+                    inserted += 1
+                conn.commit()
+            except Exception as ex:
+                conn.rollback()
+                conn.close()
+                return self.send_json(500, {"error": str(ex)})
+            conn.close()
+            print(f"📦 Bulk import: {inserted} products added")
+            return self.send_json(201, {"success": True, "inserted": inserted})
 
         self.send_json(404, {"error": "Endpoint not found"})
 
