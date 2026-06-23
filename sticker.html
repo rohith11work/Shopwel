@@ -423,6 +423,23 @@
             padding: 40px 32px;
         }
 
+        .sticker-poster {
+            width: 440px;
+            height: 620px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--sticker-primary) 0%, var(--green-dark, #145c2d) 100%);
+            box-shadow: var(--shadow-lg);
+            border: 4px solid var(--sticker-secondary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            margin: 20px;
+            padding: 36px 28px;
+            color: var(--white);
+        }
+
         /* UI elements within Sticker */
         .sticker-header {
             display: flex;
@@ -606,10 +623,21 @@
                 align-content: center;
             }
 
+            .print-grid.poster-grid {
+                grid-template-columns: repeat(1, 190mm);
+                grid-template-rows: repeat(1, 270mm);
+                justify-content: center;
+                align-content: center;
+                padding: 10mm;
+                width: 210mm;
+                height: 297mm;
+            }
+
             .print-grid .sticker-circle,
             .print-grid .sticker-square,
             .print-grid .sticker-standee,
-            .print-grid .sticker-flyer {
+            .print-grid .sticker-flyer,
+            .print-grid .sticker-poster {
                 margin: 0 !important;
                 box-shadow: none !important;
                 border: 2px solid var(--sticker-primary) !important;
@@ -639,6 +667,13 @@
                 height: 210mm !important; /* A5 */
                 padding: 15mm !important;
                 border: 1px dashed #ccc !important;
+            }
+
+            .print-grid .sticker-poster {
+                width: 190mm !important;
+                height: 270mm !important;
+                padding: 15mm 12mm !important;
+                border-width: 4px !important;
             }
         }
     </style>
@@ -691,6 +726,10 @@
                     <div class="shape-card" onclick="setShape('flyer')">
                         <span class="shape-icon">📄</span>
                         <div class="shape-name">A5 Flyer</div>
+                    </div>
+                    <div class="shape-card" onclick="setShape('poster')">
+                        <span class="shape-icon">✨</span>
+                        <div class="shape-name">Promo Poster</div>
                     </div>
                 </div>
             </div>
@@ -786,6 +825,7 @@
             if (shape === 'square') badgeText = "Square Card (90mm x 90mm)";
             if (shape === 'standee') badgeText = "A4 Table Standee / Tent Card";
             if (shape === 'flyer') badgeText = "A5 Promo Flyer (148mm x 210mm)";
+            if (shape === 'poster') badgeText = "Promo Poster (A4 size)";
             previewBadgeText.innerText = badgeText;
 
             renderSticker();
@@ -1016,6 +1056,89 @@
                     </div>
                 `;
             }
+
+            if (shape === 'poster') {
+                return `
+                    <div class="sticker-poster" style="--sticker-primary: ${themePrimary}; --sticker-secondary: ${themeSecondary}; --sticker-bg: ${themeBg}; --sticker-text: ${themeText}">
+                        <!-- Top Banner / Store Logo -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed rgba(255,255,255,0.2); padding-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="44" height="44" rx="8" fill="#1a1a2e" />
+                                    <path d="M4 4 Q40 4 40 40 L4 40 Z" fill="#f5a623" />
+                                    <g transform="translate(10,12)" stroke="#fff" stroke-width="2" fill="none">
+                                        <path d="M0 0h3l5 14h10l3-10H6" />
+                                    </g>
+                                </svg>
+                                <div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.4rem; color: #fff; letter-spacing: 0.5px;">SHOPWEL</div>
+                                    <div style="font-size: 0.65rem; font-weight: 700; color: ${themeSecondary}; text-transform: uppercase; letter-spacing: 1px;">SUPERMARKET</div>
+                                </div>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 99px; padding: 4px 12px; font-size: 0.75rem; font-weight: 700; color: #fff;">
+                                ⚡ FAST HOME DELIVERY
+                            </div>
+                        </div>
+
+                        <!-- Main Catchy Title (Supply & Demand / Urgency) -->
+                        <div style="text-align: center; margin: 20px 0 10px;">
+                            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.7rem; font-weight: 900; color: #fff; line-height: 1.15; text-shadow: 0 2px 4px rgba(0,0,0,0.15); margin-bottom: 10px;">
+                                WHY CARRY HEAVY BAGS? <br>
+                                <span style="color: ${themeSecondary}">SHOP ONLINE IN SECONDS!</span>
+                            </h2>
+                            <p style="font-size: 0.85rem; color: rgba(255,255,255,0.85); max-width: 320px; margin: 0 auto;">
+                                Order all your daily essentials, snacks, dairy & groceries from home!
+                            </p>
+                        </div>
+
+                        <!-- Urgency Banner (Supply/Demand Creator) -->
+                        <div style="background: linear-gradient(90deg, #d32f2f, #f44336); color: white; border-radius: 12px; padding: 10px 14px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 15px;">
+                            <div style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                                ⚠️ LIMITED SLOTS TODAY!
+                            </div>
+                            <div style="font-size: 0.78rem; font-weight: 500; opacity: 0.95; margin-top: 2px;">
+                                We only accept <b>50 deliveries daily</b>. Scan now to secure your slot!
+                            </div>
+                        </div>
+
+                        <!-- Center QR Code Area -->
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <div class="qr-wrapper" style="padding: 12px; border-radius: 16px; background: white; display: inline-block; box-shadow: 0 8px 30px rgba(0,0,0,0.25);">
+                                <img src="images/qr_code.png" class="qr-image" style="width: 140px; height: 140px; display: block;" alt="Shopwel QR Code">
+                            </div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: ${themeSecondary}; margin-top: 8px; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                👆 Scan to Order Now
+                            </div>
+                        </div>
+
+                        <!-- Offer Banner -->
+                        <div style="background: rgba(255,255,255,0.1); border: 1.5px dashed ${themeSecondary}; border-radius: 12px; padding: 12px; text-align: center; margin-bottom: 15px;">
+                            <span style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 0.9rem; color: ${themeSecondary};">
+                                🎁 SPECIAL ONLINE DEALS
+                            </span>
+                            <div style="font-size: 0.78rem; opacity: 0.9; margin-top: 2px;">
+                                ${headline} • Free delivery on order value above ₹499
+                            </div>
+                        </div>
+
+                        <!-- Footer Website and WhatsApp -->
+                        <div style="border-top: 2px dashed rgba(255,255,255,0.2); padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                            <div>
+                                <div style="font-size: 0.65rem; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Website URL</div>
+                                <div style="font-weight: 800; color: ${themeSecondary}">shopwel.onrender.com</div>
+                            </div>
+                            ${phoneNumber ? `
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.65rem; opacity: 0.7; font-weight: 600; text-transform: uppercase;">WhatsApp Order</div>
+                                <div style="font-weight: 800; color: #25D366; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                                    🟢 ${phoneNumber}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // Build Print Sheets depending on selected layout
@@ -1037,6 +1160,9 @@
             } else if (currentShape === 'flyer') {
                 printCount = 2; // 2 A5 flyers per page (A4)
                 gridClass = 'flyer-grid';
+            } else if (currentShape === 'poster') {
+                printCount = 1; // 1 full A4 poster per page
+                gridClass = 'poster-grid';
             }
 
             const gridDiv = document.createElement('div');
