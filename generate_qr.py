@@ -4,7 +4,7 @@ from PIL import Image
 
 def generate_qr():
     # URL to encode
-    url = "https://shopwelsupermarket.in/"
+    url = "https://shopwel.onrender.com/"
     
     # Setup QR code parameters
     # High error correction (Q or H) allows for logo overlay or minor physical damage to the sticker
