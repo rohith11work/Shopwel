@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promo Sticker & QR Generator | Shopwel Supermarket</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ─── Modern Color System & Reset ─── */
+        :root {
+            --green: #1a7a3c;
+            --green-dark: #145c2d;
+            --green-light: #e8f5ed;
+            --yellow: #f5a623;
+            --yellow-light: #fff8ec;
+            --accent: #ff6b35;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, .08);
+            --shadow: 0 4px 24px rgba(0, 0, 0, .08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, .12);
+            --radius: 16px;
+            --transition: all .3s cubic-bezier(.4, 0, .2, 1);
+            
+            /* Sticker Specific Themes (Configurable via JS) */
+            --sticker-primary: #1a7a3c;
+            --sticker-secondary: #f5a623;
+            --sticker-bg: #ffffff;
+            --sticker-text: #111827;
+            --sticker-text-muted: #4b5563;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-900);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── Header ─── */
+        header {
+            background-color: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--green);
+            line-height: 1.1;
+        }
+
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--gray-700);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 99px;
+            border: 1px solid var(--gray-200);
+            background: var(--white);
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            background: var(--gray-100);
+            color: var(--green);
+        }
+
+        /* ─── Main Workspace ─── */
+        .workspace {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100vh - 77px);
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: var(--white);
+            border-right: 1px solid var(--gray-200);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 12px;
+            border-left: 3px solid var(--green);
+            padding-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .input-text {
+            padding: 10px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            color: var(--gray-900);
+            transition: var(--transition);
+        }
+
+        .input-text:focus {
+            outline: none;
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-light);
+        }
+
+        /* Shape Selector */
+        .shape-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .shape-card {
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--white);
+        }
+
+        .shape-card:hover {
+            border-color: var(--green);
+            background: var(--green-light);
+        }
+
+        .shape-card.active {
+            border-color: var(--green);
+            background: var(--green-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .shape-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .shape-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        /* Color Options */
+        .color-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .color-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid var(--white);
+            box-shadow: 0 0 0 1px var(--gray-200);
+            transition: var(--transition);
+        }
+
+        .color-dot.active {
+            box-shadow: 0 0 0 2px var(--green);
+            transform: scale(1.1);
+        }
+
+        /* Action Buttons */
+        .btn-primary {
+            background-color: var(--green);
+            color: var(--white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 99px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: 0 4px 12px rgba(26, 122, 60, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--green-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 122, 60, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+            padding: 10px 20px;
+            border-radius: 99px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-100);
+            color: var(--gray-900);
+        }
+
+        /* ─── Preview Panel ─── */
+        .preview-panel {
+            background-color: var(--gray-100);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+        }
+
+        .preview-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .preview-title-badge {
+            background: rgba(26, 122, 60, 0.1);
+            color: var(--green);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 99px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* ─── Sticker Layout Container ─── */
+        .sticker-container {
+            perspective: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Sticker Paper Graphic */
+        .sticker-paper {
+            background: var(--white);
+            box-shadow: var(--shadow-lg);
+            border-radius: 20px;
+            transition: transform 0.5s ease;
+            position: relative;
+            background-image: radial-gradient(#e5e7eb 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            background-color: #fafbfc;
+        }
+
+        /* ──── circular sticker design ──── */
+        .sticker-circle {
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            background: var(--sticker-bg);
+            box-shadow: var(--shadow);
+            border: 4px solid var(--sticker-primary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin: 20px;
+            padding: 10px;
+        }
+
+        /* Dash cutline */
+        .sticker-circle::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            border-radius: 50%;
+            border: 1.5px dashed var(--sticker-secondary);
+            pointer-events: none;
+        }
+
+        /* ──── square sticker design ──── */
+        .sticker-square {
+            width: 385px;
+            height: 385px;
+            border-radius: 24px;
+            background: var(--sticker-bg);
+            box-shadow: var(--shadow);
+            border: 3px solid var(--sticker-primary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            margin: 20px;
+            padding: 24px;
+        }
+
+        .sticker-square::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            border-radius: 16px;
+            border: 1.5px dashed rgba(0, 0, 0, 0.08);
+            pointer-events: none;
+        }
+
+        /* ──── standee card design (foldable tent) ──── */
+        .sticker-standee {
+            width: 380px;
+            height: 520px;
+            border-radius: 16px;
+            background: var(--sticker-bg);
+            box-shadow: var(--shadow-lg);
+            border: 4px solid var(--sticker-primary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            margin: 20px;
+            padding: 28px;
+        }
+
+        /* ──── flyer delivery sheet design ──── */
+        .sticker-flyer {
+            width: 440px;
+            height: 600px;
+            border-radius: 12px;
+            background: var(--sticker-bg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            margin: 20px;
+            padding: 40px 32px;
+        }
+
+        /* UI elements within Sticker */
+        .sticker-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .sticker-header svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .sticker-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            color: var(--sticker-primary);
+            font-size: 1.3rem;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+
+        .sticker-subtitle {
+            font-size: 0.65rem;
+            color: var(--sticker-text-muted);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .sticker-badge {
+            background-color: var(--sticker-secondary);
+            color: var(--gray-900);
+            padding: 6px 16px;
+            border-radius: 99px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            margin: 12px auto 8px;
+            display: inline-block;
+        }
+
+        .qr-wrapper {
+            background: var(--white);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: inline-block;
+            margin: 10px auto;
+            border: 1px solid var(--gray-200);
+        }
+
+        .qr-image {
+            width: 140px;
+            height: 140px;
+            display: block;
+        }
+
+        .sticker-url {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            color: var(--sticker-primary);
+            font-size: 0.95rem;
+            text-align: center;
+            letter-spacing: 0.02em;
+            margin-top: 4px;
+        }
+
+        .sticker-phone {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            color: var(--sticker-text);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        /* Circular curved SVG texts */
+        .curved-svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* ─── PRINT PRESETS SHEET GRID (HIDDEN ON SCREEN) ─── */
+        #printSheet {
+            display: none;
+        }
+
+        /* ─── Responsive & Print Style Rules ─── */
+        @media (max-width: 900px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .settings-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--gray-200);
+                overflow-y: visible;
+            }
+            .preview-panel {
+                min-height: 500px;
+            }
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+                color: #000 !important;
+                min-height: auto !important;
+            }
+            
+            /* Hide all screen interface elements */
+            header, .settings-panel, .preview-panel, .preview-header, #appStyles {
+                display: none !important;
+            }
+
+            .workspace {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            /* Show Print Sheet instead */
+            #printSheet {
+                display: block !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Grid configurations for printing */
+            .print-grid {
+                display: grid;
+                justify-content: center;
+                align-content: center;
+                gap: 15mm;
+                page-break-after: always;
+                width: 210mm; /* A4 width */
+                height: 297mm; /* A4 height */
+                margin: 0 auto;
+                box-sizing: border-box;
+                padding: 15mm 10mm;
+            }
+
+            .print-grid.circle-grid {
+                grid-template-columns: repeat(2, 85mm);
+                grid-template-rows: repeat(3, 85mm);
+                gap: 12mm 10mm;
+            }
+
+            .print-grid.square-grid {
+                grid-template-columns: repeat(2, 90mm);
+                grid-template-rows: repeat(3, 90mm);
+                gap: 10mm;
+            }
+
+            .print-grid.standee-grid {
+                grid-template-columns: repeat(1, 140mm);
+                justify-content: center;
+                padding-top: 30mm;
+            }
+
+            .print-grid.flyer-grid {
+                grid-template-columns: repeat(1, 148mm);
+                grid-template-rows: repeat(2, 210mm);
+                gap: 0;
+                padding: 0;
+                width: 210mm;
+                height: 297mm;
+                justify-content: center;
+                align-content: center;
+            }
+
+            .print-grid .sticker-circle,
+            .print-grid .sticker-square,
+            .print-grid .sticker-standee,
+            .print-grid .sticker-flyer {
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: 2px solid var(--sticker-primary) !important;
+                page-break-inside: avoid;
+            }
+
+            .print-grid .sticker-circle {
+                width: 82mm !important;
+                height: 82mm !important;
+            }
+
+            .print-grid .sticker-square {
+                width: 88mm !important;
+                height: 88mm !important;
+                padding: 5mm !important;
+            }
+
+            .print-grid .sticker-standee {
+                width: 140mm !important;
+                height: 200mm !important;
+                padding: 10mm !important;
+                border-width: 3px !important;
+            }
+
+            .print-grid .sticker-flyer {
+                width: 148mm !important;
+                height: 210mm !important; /* A5 */
+                padding: 15mm !important;
+                border: 1px dashed #ccc !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── HEADER ─── -->
+    <header>
+        <div class="logo-area">
+            <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                <rect width="44" height="44" rx="8" fill="#1a1a2e" />
+                <path d="M4 4 Q40 4 40 40 L4 40 Z" fill="#f5a623" />
+                <g transform="translate(10,12)" stroke="#8B4000" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M0 0h3l5 14h10l3-10H6" />
+                    <circle cx="10" cy="19" r="2" fill="#8B4000" />
+                    <circle cx="18" cy="19" r="2" fill="#8B4000" />
+                </g>
+            </svg>
+            <div class="logo-text">
+                <h1>Shopwel Supermarket</h1>
+                <span>Marketing &amp; Promo QR Generator</span>
+            </div>
+        </div>
+        <a href="admin.html" class="btn-back">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"></path></svg>
+            Back to Dashboard
+        </a>
+    </header>
+
+    <!-- ─── WORKSPACE ─── -->
+    <div class="workspace">
+        
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+            <div>
+                <div class="section-title">1. Choose Layout</div>
+                <div class="shape-grid">
+                    <div class="shape-card active" onclick="setShape('circle')">
+                        <span class="shape-icon">🟢</span>
+                        <div class="shape-name">Circle Sticker</div>
+                    </div>
+                    <div class="shape-card" onclick="setShape('square')">
+                        <span class="shape-icon">🟧</span>
+                        <div class="shape-name">Square Card</div>
+                    </div>
+                    <div class="shape-card" onclick="setShape('standee')">
+                        <span class="shape-icon">⛺</span>
+                        <div class="shape-name">Table Standee</div>
+                    </div>
+                    <div class="shape-card" onclick="setShape('flyer')">
+                        <span class="shape-icon">📄</span>
+                        <div class="shape-name">A5 Flyer</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">2. Choose Theme</div>
+                <div class="color-row">
+                    <div class="color-dot active" style="background:#1a7a3c" onclick="setTheme('#1a7a3c', '#f5a623', '#ffffff', '#111827', this)"></div>
+                    <div class="color-dot" style="background:#ff6b35" onclick="setTheme('#ff6b35', '#1a7a3c', '#ffffff', '#111827', this)"></div>
+                    <div class="color-dot" style="background:#f5a623" onclick="setTheme('#f5a623', '#1a7a3c', '#fff8ec', '#111827', this)"></div>
+                    <div class="color-dot" style="background:#1a1a2e" onclick="setTheme('#1a1a2e', '#f5a623', '#ffffff', '#ffffff', this)"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">3. Customize Text</div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <label for="headlineText">Promo Headline</label>
+                    <input type="text" id="headlineText" class="input-text" value="Free Home Delivery!" oninput="updateStickerText()">
+                </div>
+                <div class="control-group">
+                    <label for="phoneText">WhatsApp Phone</label>
+                    <input type="text" id="phoneText" class="input-text" value="+91 98765 43210" oninput="updateStickerText()">
+                </div>
+            </div>
+
+            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn-primary" onclick="window.print()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.617 0-1.11-.502-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-14.326 0C3.768 7.44 3 8.375 3 9.456V15.75a2.25 2.25 0 002.25 2.25h1.091M9 9h6m-6 3h6m-9-1.5h12"></path></svg>
+                    Print Sticker Sheet
+                </button>
+                <a href="images/qr_code.png" download="shopwel_qr.png" class="btn-secondary" style="text-decoration: none;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                    Download QR Code Image
+                </a>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <span class="preview-title-badge" id="previewBadge">Circle Sticker (85mm x 85mm)</span>
+                <span style="font-size: 0.8rem; color: var(--gray-500); font-weight: 500;">Press <b>Cmd+P</b> or click Print to print an A4 sheet</span>
+            </div>
+
+            <!-- Preview Card container -->
+            <div class="sticker-container" id="stickerPreview">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─── PRINT SHEET GRID (RENDERED ONLY DURING PRINT) ─── -->
+    <div id="printSheet">
+        <!-- Rendered dynamically via JavaScript -->
+    </div>
+
+    <!-- ─── JAVASCRIPT LOGIC ─── -->
+    <script>
+        // Sticker states
+        let currentShape = 'circle';
+        let themePrimary = '#1a7a3c';
+        let themeSecondary = '#f5a623';
+        let themeBg = '#ffffff';
+        let themeText = '#111827';
+        
+        let headline = "Free Home Delivery!";
+        let phoneNumber = "+91 98765 43210";
+
+        // DOM elements
+        const previewContainer = document.getElementById('stickerPreview');
+        const printSheet = document.getElementById('printSheet');
+        const previewBadgeText = document.getElementById('previewBadge');
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSticker();
+        });
+
+        // Set Shape
+        function setShape(shape) {
+            currentShape = shape;
+            
+            // Update active cards
+            document.querySelectorAll('.shape-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Update badge info text
+            let badgeText = "Circle Sticker (85mm x 85mm)";
+            if (shape === 'square') badgeText = "Square Card (90mm x 90mm)";
+            if (shape === 'standee') badgeText = "A4 Table Standee / Tent Card";
+            if (shape === 'flyer') badgeText = "A5 Promo Flyer (148mm x 210mm)";
+            previewBadgeText.innerText = badgeText;
+
+            renderSticker();
+        }
+
+        // Set Theme Colors
+        function setTheme(primary, secondary, bg, text, el) {
+            themePrimary = primary;
+            themeSecondary = secondary;
+            themeBg = bg;
+            themeText = text;
+
+            // Update active dot
+            document.querySelectorAll('.color-dot').forEach(dot => {
+                dot.classList.remove('active');
+            });
+            el.classList.add('active');
+
+            // Apply style root
+            document.documentElement.style.setProperty('--sticker-primary', primary);
+            document.documentElement.style.setProperty('--sticker-secondary', secondary);
+            document.documentElement.style.setProperty('--sticker-bg', bg);
+            document.documentElement.style.setProperty('--sticker-text', text);
+
+            renderSticker();
+        }
+
+        // Update customized texts
+        function updateStickerText() {
+            headline = document.getElementById('headlineText').value || "Free Home Delivery!";
+            phoneNumber = document.getElementById('phoneText').value || "";
+            renderSticker();
+        }
+
+        // Render functions
+        function renderSticker() {
+            // Update Preview Panel
+            previewContainer.innerHTML = getStickerHTML(currentShape, 'preview');
+            
+            // Build Print Sheet (A4 sheets with multiple copies)
+            buildPrintGrid();
+        }
+
+        // Generate the raw HTML structure for a single sticker based on shape
+        function getStickerHTML(shape, context = 'preview') {
+            const logoColor = (themePrimary === '#1a1a2e') ? '#ffffff' : themePrimary;
+            
+            if (shape === 'circle') {
+                return `
+                    <div class="sticker-circle" style="--sticker-primary: ${themePrimary}; --sticker-secondary: ${themeSecondary}; --sticker-bg: ${themeBg}; --sticker-text: ${themeText}">
+                        <svg class="curved-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                            <!-- SVG curved paths for circular text -->
+                            <path id="curve-top-${context}" d="M 50,200 A 150,150 0 1,1 350,200" fill="none" />
+                            <path id="curve-bottom-${context}" d="M 350,200 A 150,150 0 0,1 50,200" fill="none" />
+                            
+                            <text font-family="'Outfit', sans-serif" font-weight="900" font-size="20" fill="${themePrimary}" letter-spacing="2.5">
+                                <textPath href="#curve-top-${context}" startOffset="50%" text-anchor="middle">
+                                    SHOPWEL SUPERMARKET
+                                </textPath>
+                            </text>
+                            
+                            <text font-family="'Inter', sans-serif" font-weight="700" font-size="13" fill="${themeSecondary}" letter-spacing="1.5">
+                                <textPath href="#curve-bottom-${context}" startOffset="50%" text-anchor="middle">
+                                    ${headline.toUpperCase()}
+                                </textPath>
+                            </text>
+                        </svg>
+                        
+                        <!-- Logo & QR center area -->
+                        <div style="z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: -10px;">
+                            <svg width="30" height="30" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:6px">
+                                <rect width="44" height="44" rx="8" fill="${themePrimary}" />
+                                <path d="M4 4 Q40 4 40 40 L4 40 Z" fill="${themeSecondary}" />
+                                <g transform="translate(10,12)" stroke="${themePrimary === '#1a1a2e' ? '#1a1a2e' : '#fff'}" stroke-width="2" fill="none">
+                                    <path d="M0 0h3l5 14h10l3-10H6" />
+                                </g>
+                            </svg>
+                            
+                            <div class="qr-wrapper" style="padding: 6px; border-radius: 8px;">
+                                <img src="images/qr_code.png" class="qr-image" style="width: 125px; height: 125px;" alt="Shopwel QR Code">
+                            </div>
+                            
+                            <div class="sticker-url" style="font-size: 0.8rem; margin-top: 2px;">shopwelsupermarket.in</div>
+                            ${phoneNumber ? `<div class="sticker-phone" style="font-size: 0.75rem; margin-top: 1px;">📞 ${phoneNumber}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (shape === 'square') {
+                return `
+                    <div class="sticker-square" style="--sticker-primary: ${themePrimary}; --sticker-secondary: ${themeSecondary}; --sticker-bg: ${themeBg}; --sticker-text: ${themeText}">
+                        <div class="sticker-header">
+                            <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="44" height="44" rx="8" fill="${themePrimary}" />
+                                <path d="M4 4 Q40 4 40 40 L4 40 Z" fill="${themeSecondary}" />
+                                <g transform="translate(10,12)" stroke="${themePrimary === '#1a1a2e' ? '#1a1a2e' : '#fff'}" stroke-width="2" fill="none">
+                                    <path d="M0 0h3l5 14h10l3-10H6" />
+                                </g>
+                            </svg>
+                            <div style="text-align: left;">
+                                <div class="sticker-title">Shopwel</div>
+                                <div class="sticker-subtitle" style="color: ${themePrimary}">SUPERMARKET</div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 10px 0;">
+                            <div class="sticker-badge">${headline}</div>
+                            
+                            <div class="qr-wrapper">
+                                <img src="images/qr_code.png" class="qr-image" alt="Shopwel QR Code">
+                            </div>
+                            
+                            <div style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); margin-top: 4px;">SCAN QR TO ORDER ONLINE</div>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed var(--gray-200); padding-top: 12px; text-align: center;">
+                            <div class="sticker-url">www.shopwelsupermarket.in</div>
+                            ${phoneNumber ? `<div class="sticker-phone">📞 WhatsApp List: ${phoneNumber}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (shape === 'standee') {
+                return `
+                    <div class="sticker-standee" style="--sticker-primary: ${themePrimary}; --sticker-secondary: ${themeSecondary}; --sticker-bg: ${themeBg}; --sticker-text: ${themeText}">
+                        <!-- Top Header -->
+                        <div style="text-align: center; border-bottom: 2px solid ${themePrimary}; padding-bottom: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px;">
+                                <svg width="32" height="32" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="44" height="44" rx="8" fill="${themePrimary}" />
+                                    <path d="M4 4 Q40 4 40 40 L4 40 Z" fill="${themeSecondary}" />
+                                    <g transform="translate(10,12)" stroke="${themePrimary === '#1a1a2e' ? '#1a1a2e' : '#fff'}" stroke-width="2" fill="none">
+                                        <path d="M0 0h3l5 14h10l3-10H6" />
+                                    </g>
+                                </svg>
+                                <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; color: ${themePrimary}; letter-spacing: 0.5px;">SHOPWEL</span>
+                            </div>
+                            <span style="font-size: 0.8rem; font-weight: 700; color: ${themeSecondary}; letter-spacing: 2px; text-transform: uppercase;">Your Neighborhood Supermarket</span>
+                        </div>
+                        
+                        <!-- Middle QR Core -->
+                        <div style="text-align: center; margin: 20px 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: ${themeText}; margin-bottom: 6px;">🛒 Order Online &amp; Save Time!</h2>
+                            <p style="font-size: 0.85rem; color: var(--gray-500); max-width: 260px; margin-bottom: 15px;">Scan this code to browse our full list of 5,000+ items and order instantly.</p>
+                            
+                            <div class="qr-wrapper" style="padding: 14px; border-width: 2px; border-color: ${themePrimary}">
+                                <img src="images/qr_code.png" class="qr-image" style="width: 170px; height: 170px;" alt="Shopwel QR Code">
+                            </div>
+                            
+                            <div class="sticker-badge" style="font-size: 0.9rem; padding: 8px 24px; margin-top: 15px;">${headline}</div>
+                        </div>
+                        
+                        <!-- Bottom Info -->
+                        <div style="background-color: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center;">
+                            <div style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); margin-bottom: 4px;">WEBSITE</div>
+                            <div class="sticker-url" style="font-size: 1.1rem; margin-bottom: 8px;">www.shopwelsupermarket.in</div>
+                            ${phoneNumber ? `
+                                <div style="font-size: 0.72rem; font-weight: 600; color: var(--gray-500); margin-bottom: 2px;">WHATSAPP ORDERING</div>
+                                <div class="sticker-phone" style="font-size: 1rem;">🟢 ${phoneNumber}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (shape === 'flyer') {
+                return `
+                    <div class="sticker-flyer" style="--sticker-primary: ${themePrimary}; --sticker-secondary: ${themeSecondary}; --sticker-bg: ${themeBg}; --sticker-text: ${themeText}">
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--gray-100); padding-bottom: 20px;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <svg width="32" height="32" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="44" height="44" rx="8" fill="${themePrimary}" />
+                                        <path d="M4 4 Q40 4 40 40 L4 40 Z" fill="${themeSecondary}" />
+                                    </svg>
+                                    <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; color: ${themePrimary}">SHOPWEL</span>
+                                </div>
+                                <span style="font-size: 0.8rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px;">Supermarket at your Doorstep</span>
+                            </div>
+                            <div class="sticker-badge" style="margin: 0; font-size: 0.8rem; padding: 6px 14px;">${headline}</div>
+                        </div>
+
+                        <div style="margin: 30px 0; display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: center;">
+                            <div>
+                                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; color: ${themeText}; margin-bottom: 15px; line-height: 1.2;">No More Heavy Carrying! Order Online</h2>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                        <span style="background: ${themePrimary}; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; min-width: 22px;">1</span>
+                                        <div style="font-size: 0.85rem; line-height: 1.4;"><b style="color: ${themeText}">Scan QR Code</b> to open our website instantly.</div>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                        <span style="background: ${themePrimary}; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; min-width: 22px;">2</span>
+                                        <div style="font-size: 0.85rem; line-height: 1.4;"><b style="color: ${themeText}">Select items</b> from Dairy, Groceries, Staples &amp; Snacks.</div>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                        <span style="background: ${themePrimary}; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; min-width: 22px;">3</span>
+                                        <div style="font-size: 0.85rem; line-height: 1.4;"><b style="color: ${themeText}">Click Order</b> to send your list via WhatsApp. We deliver!</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="text-align: center;">
+                                <div class="qr-wrapper" style="padding: 12px; border-width: 2px; border-color: ${themePrimary}; background: white;">
+                                    <img src="images/qr_code.png" class="qr-image" style="width: 140px; height: 140px;" alt="Shopwel QR Code">
+                                </div>
+                                <div style="font-size: 0.7rem; font-weight: 700; color: ${themePrimary}; margin-top: 6px; letter-spacing: 1px; text-transform: uppercase;">Scan to Order</div>
+                            </div>
+                        </div>
+
+                        <div style="background-color: var(--gray-100); border-radius: 12px; padding: 18px; text-align: center; border-left: 4px solid ${themePrimary};">
+                            <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <div style="font-size: 0.7rem; font-weight: 600; color: var(--gray-500); margin-bottom: 2px;">WEB ADDRESS</div>
+                                    <div class="sticker-url" style="font-size: 1rem; margin: 0;">shopwelsupermarket.in</div>
+                                </div>
+                                ${phoneNumber ? `
+                                <div>
+                                    <div style="font-size: 0.7rem; font-weight: 600; color: var(--gray-500); margin-bottom: 2px;">WHATSAPP ORDERING</div>
+                                    <div class="sticker-phone" style="font-size: 1rem; margin: 0; justify-content: center;">🟢 ${phoneNumber}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Build Print Sheets depending on selected layout
+        function buildPrintGrid() {
+            printSheet.innerHTML = '';
+            
+            let printCount = 6;
+            let gridClass = 'circle-grid';
+
+            if (currentShape === 'circle') {
+                printCount = 6; // 6 circular stickers per sheet (A4)
+                gridClass = 'circle-grid';
+            } else if (currentShape === 'square') {
+                printCount = 6; // 6 square stickers per sheet (A4)
+                gridClass = 'square-grid';
+            } else if (currentShape === 'standee') {
+                printCount = 1; // 1 counter card standee per page (A4)
+                gridClass = 'standee-grid';
+            } else if (currentShape === 'flyer') {
+                printCount = 2; // 2 A5 flyers per page (A4)
+                gridClass = 'flyer-grid';
+            }
+
+            const gridDiv = document.createElement('div');
+            gridDiv.className = `print-grid ${gridClass}`;
+
+            for (let i = 0; i < printCount; i++) {
+                gridDiv.innerHTML += getStickerHTML(currentShape, `print-${i}`);
+            }
+
+            printSheet.appendChild(gridDiv);
+        }
+    </script>
+</body>
+</html>
