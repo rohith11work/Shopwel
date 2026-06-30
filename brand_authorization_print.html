@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brand Asset & Logo Authorization Agreement</title>
+    <title>Simple Brand Usage Consent</title>
     <style>
         /* ─── Page Design & Reset ─── */
         * {
@@ -13,10 +13,10 @@
         }
 
         body {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
             line-height: 1.6;
-            color: #333333;
+            color: #374151;
             background-color: #f3f4f6;
             padding: 40px 20px;
         }
@@ -27,20 +27,19 @@
             width: 210mm; /* A4 Width */
             min-height: 297mm; /* A4 Height */
             margin: 0 auto;
-            padding: 25mm 20mm; /* Standard 1 inch margins */
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 25mm 20mm;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             position: relative;
-            border-radius: 4px;
+            border-radius: 8px;
         }
 
-        /* Print Controls (Hidden when printing) */
+        /* Print Controls */
         .controls {
             max-width: 210mm;
             margin: 0 auto 20px auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-family: Arial, sans-serif;
             background: #ffffff;
             padding: 12px 20px;
             border-radius: 8px;
@@ -52,7 +51,7 @@
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             font-weight: bold;
             font-size: 14px;
             cursor: pointer;
@@ -77,79 +76,33 @@
             color: #111827;
         }
 
-        /* ─── Legal Document Typography ─── */
+        /* ─── Typography ─── */
         .doc-header {
-            text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px double #333333;
+            border-bottom: 2px solid #e5e7eb;
             padding-bottom: 15px;
         }
 
         .doc-title {
             font-size: 16pt;
             font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            color: #1a7a4a;
+            margin-bottom: 4px;
         }
 
-        .doc-subtitle {
-            font-size: 11pt;
-            font-style: italic;
-            color: #555555;
-        }
-
-        .meta-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-            font-size: 11pt;
-        }
-
-        .meta-table td {
-            padding: 4px 0;
-            vertical-align: top;
-        }
-
-        .meta-table td.label {
-            font-weight: bold;
-            width: 120px;
-        }
-
-        .divider {
-            height: 1px;
-            background-color: #d1d5db;
-            margin: 20px 0;
-        }
-
-        .section-title {
-            font-size: 12pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #333333;
-            padding-bottom: 3px;
+        .doc-date {
+            font-size: 10pt;
+            color: #6b7280;
         }
 
         p {
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-
-        ul {
-            margin-left: 25px;
-            margin-bottom: 15px;
-        }
-
-        li {
-            margin-bottom: 8px;
+            margin-bottom: 20px;
             text-align: justify;
         }
 
         /* Signature block columns */
         .signature-section {
-            margin-top: 50px;
+            margin-top: 60px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 50px;
@@ -163,22 +116,23 @@
 
         .sig-party {
             font-weight: bold;
-            margin-bottom: 40px;
-            border-bottom: 1px solid #6b7280;
+            color: #111827;
+            margin-bottom: 45px;
+            border-bottom: 2px solid #f3f4f6;
             padding-bottom: 6px;
         }
 
         .sig-line {
-            border-bottom: 1px solid #333333;
-            width: 80%;
-            margin-top: 40px;
+            border-bottom: 1.5px solid #d1d5db;
+            width: 85%;
+            margin-top: 45px;
             margin-bottom: 6px;
         }
 
         .sig-label {
             font-size: 10pt;
-            color: #555555;
-            margin-bottom: 4px;
+            color: #4b5563;
+            margin-bottom: 3px;
         }
 
         /* ─── PRINT MEDIA INSTRUCTIONS ─── */
@@ -201,10 +155,9 @@
                 min-height: auto !important;
             }
 
-            /* Force standard print margins */
             @page {
                 size: A4;
-                margin: 20mm;
+                margin: 25mm 20mm;
             }
         }
     </style>
@@ -217,67 +170,44 @@
             &larr; Back to Admin Portal
         </a>
         <button class="btn" onclick="window.print()">
-            Print Document (A4)
+            Print Consent Note (A4)
         </button>
     </div>
 
-    <!-- Printable Legal Page -->
+    <!-- Printable Page -->
     <div class="page-wrapper">
         
         <div class="doc-header">
-            <h1 class="doc-title">Brand Asset &amp; Logo Authorization Agreement</h1>
-            <div class="doc-subtitle">E-Commerce Hosting &amp; Promotion Permission</div>
+            <h1 class="doc-title">Simple Brand Usage Consent</h1>
+            <div class="doc-date">Date: July 1, 2026</div>
         </div>
 
-        <table class="meta-table">
-            <tr>
-                <td class="label">Date:</td>
-                <td>June 30, 2026</td>
-            </tr>
-            <tr>
-                <td class="label">Effective Date:</td>
-                <td>July 1, 2026</td>
-            </tr>
-        </table>
+        <p>This note serves as a simple consent regarding the use of the supermarket's brand assets on the website created by Rohith P (the Developer).</p>
 
-        <div class="section-title">1. Parties</div>
-        <p>This Brand Asset &amp; Logo Authorization Agreement (the "Agreement") is entered into and made effective as of the Effective Date, by and between:</p>
-        <ul>
-            <li><strong>The Developer:</strong> Rohith P, residing in Bengaluru, Karnataka (hereinafter referred to as the "Developer").</li>
-            <li><strong>The Business:</strong> Shopwel Supermarket, located at Dream Paradise, 401/C, Gubbalala Main Road, Subramanyapura, Bengaluru 560061, represented by its authorized owner/manager (hereinafter referred to as the "Business").</li>
-        </ul>
+        <p><strong>Shopwel Supermarket</strong> (located on Gubbalala Main Road, Subramanyapura, Bengaluru) hereby allows Rohith P to display the store name, logo, images, and product inventory details on the website (<strong>https://shopwel.onrender.com/</strong> / <strong>https://shopwelsupermarket.in/</strong>) and on promotional materials (like flyers and stickers containing the QR code).</p>
 
-        <div class="section-title">2. Authorization &amp; License Grant</div>
-        <p>The Business hereby grants the Developer a non-exclusive, royalty-free, license to host, display, publish, and use the trade name "Shopwel Supermarket", associated brand logos, store photographs, and product information (collectively, the "Brand Assets") on the e-commerce grocery store website deployed at <strong>https://shopwel.onrender.com/</strong> (and any custom domain names configured for it, including <strong>https://shopwelsupermarket.in/</strong>).</p>
-        <p>This authorization is granted solely to allow the Developer to build, run, host, maintain, and generate promotional marketing materials (such as stickers, counter standees, and flyers containing the website QR code) for the Business.</p>
+        <p>This permission is granted for a minimum period of <strong>six (6) months</strong> (from July 1, 2026, to December 31, 2026) and will continue automatically for as long as Shopwel Supermarket continues to lease/rent the website service from Rohith.</p>
 
-        <div class="section-title">3. Term &amp; Lock-in Period</div>
-        <p>The parties agree to the following terms regarding the duration of this brand authorization:</p>
-        <ul>
-            <li><strong>Lock-in Period:</strong> This authorization is irrevocable and binding for an initial minimum term of six (6) months, commencing on July 1, 2026, and ending on December 31, 2026.</li>
-            <li><strong>Rental Continuation:</strong> Following the expiration of the initial 6-month term, this brand authorization shall automatically continue to remain active as long as the Business continues to lease the website from the Developer and pays the agreed monthly website rental fees.</li>
-            <li><strong>Termination:</strong> This license will immediately terminate upon the official termination of the website rental agreement. Upon termination, the Developer shall take the e-commerce website offline and remove the Business's Brand Assets from all servers.</li>
-        </ul>
-
-        <div class="section-title">4. Ownership Clarity</div>
-        <p>Nothing in this agreement shall be construed as a transfer of intellectual property. The Business retains all ownership rights, titles, and interests in its trademarks and logo assets. The Developer retains all ownership rights, titles, and interests in the website source code, systems, designs, and database architectures.</p>
-
-        <div class="section-title">5. Governing Law</div>
-        <p>This Agreement shall be governed by, and construed in accordance with, the laws of India. Any disputes arising under this agreement shall be subject to the exclusive jurisdiction of the courts of Bengaluru, Karnataka.</p>
+        <p><strong>Clarity of Rights:</strong></p>
+        <p>1. Shopwel Supermarket retains complete ownership of its brand name, trademark, and logo assets.<br>
+        2. Rohith P retains complete ownership of the website code, design, and hosting systems.<br>
+        3. This permission is solely to allow Rohith to run, update, and promote the website on behalf of the supermarket.</p>
 
         <!-- Signature Block -->
         <div class="signature-section">
             <div class="sig-col">
-                <div class="sig-party">For the Developer</div>
+                <div class="sig-party">Developer</div>
                 <div class="sig-line"></div>
-                <div class="sig-label">Rohith P</div>
+                <div class="sig-label">Name: Rohith P</div>
+                <div class="sig-label">Signature: ______________________</div>
                 <div class="sig-label">Date: ________________________</div>
             </div>
             
             <div class="sig-col">
-                <div class="sig-party">For the Business (Shopwel Supermarket)</div>
+                <div class="sig-party">For Shopwel Supermarket</div>
                 <div class="sig-line"></div>
-                <div class="sig-label">Authorized Signatory Name &amp; Title</div>
+                <div class="sig-label">Name &amp; Title: ___________________</div>
+                <div class="sig-label">Signature: ______________________</div>
                 <div class="sig-label">Date: ________________________</div>
             </div>
         </div>
