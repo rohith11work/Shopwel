@@ -133,6 +133,18 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         qs     = urllib.parse.parse_qs(parsed.query)
 
+        # GET /api/promo-banner
+        if parsed.path == "/api/promo-banner":
+            meta_file = os.path.join(STATIC_DIR, "promo_banner.json")
+            if os.path.exists(meta_file):
+                try:
+                    with open(meta_file, "r") as f:
+                        data = json.load(f)
+                    return self.send_json(200, data)
+                except Exception:
+                    pass
+            return self.send_json(200, {"active": False})
+
         # GET /api/aisles — distinct category list
         if parsed.path == "/api/aisles":
             conn = sqlite3.connect(DB_FILE)
@@ -286,6 +298,7 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
     # ── POST ──────────────────────────────────────────
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query)
 
         # POST /api/orders/new
         if parsed.path == "/api/orders/new":
@@ -332,7 +345,79 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
             
             return self.send_json(201, {"success": True, "id": prod_id})
 
-        # POST /api/products/bulk — insert many products in one transaction
+        # POST /api/promo-banner — handle promotional poster image/PDF upload and toggle
+        if parsed.path == "/api/promo-banner":
+            action = qs.get("action", [None])[0]
+            
+            if action == "toggle":
+                body = self.parse_body()
+                key = str(body.get("admin_key", ""))
+                active = body.get("active", False)
+                if key != ADMIN_KEY:
+                    return self.send_json(403, {"error": "Invalid admin key"})
+            else:
+                key = qs.get("admin_key", [None])[0]
+                if key != ADMIN_KEY:
+                    return self.send_json(403, {"error": "Invalid admin key"})
+
+            if action == "upload":
+                file_type = qs.get("type", ["image"])[0]  # "image" or "pdf"
+                ext = "png" if file_type == "image" else "pdf"
+                filename = f"promo_banner.{ext}"
+                filepath = os.path.join(STATIC_DIR, "images", filename)
+
+                os.makedirs(os.path.join(STATIC_DIR, "images"), exist_ok=True)
+
+                length = int(self.headers.get("Content-Length", 0))
+                if length == 0:
+                    return self.send_json(400, {"error": "Empty file payload"})
+
+                try:
+                    with open(filepath, "wb") as f:
+                        remaining = length
+                        while remaining > 0:
+                            chunk_size = min(remaining, 65536)
+                            chunk = self.rfile.read(chunk_size)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+                            remaining -= len(chunk)
+
+                    # Update metadata JSON
+                    meta_file = os.path.join(STATIC_DIR, "promo_banner.json")
+                    meta_data = {
+                        "active": True,
+                        "type": file_type,
+                        "filename": filename
+                    }
+                    with open(meta_file, "w") as f:
+                        json.dump(meta_data, f)
+
+                    print(f"📢 Promo banner uploaded: {filename} ({file_type})")
+                    return self.send_json(200, {"success": True, "metadata": meta_data})
+                except Exception as ex:
+                    return self.send_json(500, {"error": str(ex)})
+
+            elif action == "toggle":
+                meta_file = os.path.join(STATIC_DIR, "promo_banner.json")
+                meta_data = {"active": False}
+                if os.path.exists(meta_file):
+                    try:
+                        with open(meta_file, "r") as f:
+                            meta_data = json.load(f)
+                    except Exception:
+                        pass
+
+                meta_data["active"] = active
+                try:
+                    with open(meta_file, "w") as f:
+                        json.dump(meta_data, f)
+                    print(f"📢 Promo banner toggled: active={active}")
+                    return self.send_json(200, {"success": True, "metadata": meta_data})
+                except Exception as ex:
+                    return self.send_json(500, {"error": str(ex)})
+
+        # POST /api/products/bulk — upsert products in one transaction
         if parsed.path == "/api/products/bulk":
             body = self.parse_body()
             key = str(body.get("admin_key", ""))
@@ -343,30 +428,78 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
             if not isinstance(products, list) or len(products) == 0:
                 return self.send_json(400, {"error": "No products provided"})
 
+            # Option to mark other missing products as out of stock
+            mark_missing = qs.get("mark_missing_out_of_stock", ["false"])[0] == "true"
+
             inserted = 0
+            updated = 0
+            unchanged = 0
+            
             conn = sqlite3.connect(DB_FILE)
             c = conn.cursor()
             try:
                 c.execute("BEGIN")
+                
+                # If marking missing, reset all products to out_of_stock first
+                # The loop will set active items back to in_stock
+                if mark_missing:
+                    c.execute("UPDATE products SET stock_status = 'out_of_stock'")
+
                 for p in products:
                     aisle = str(p.get("aisle", "Default")).strip()
                     name  = str(p.get("name", "")).strip()
                     price = float(p.get("price", 0))
+                    stock_status = str(p.get("stock_status", "in_stock")).strip()
+                    
                     if not name:
                         continue
-                    c.execute(
-                        "INSERT INTO products (aisle, name, price, stock_status) VALUES (?, ?, ?, 'in_stock')",
-                        (aisle, name, price)
-                    )
-                    inserted += 1
+
+                    # Search by product name
+                    c.execute("SELECT id, price, aisle, stock_status FROM products WHERE name = ?", (name,))
+                    existing = c.fetchone()
+                    
+                    if existing:
+                        prod_id, old_price, old_aisle, old_stock = existing
+                        
+                        updates = []
+                        params = []
+                        if price != old_price:
+                            updates.append("price = ?")
+                            params.append(price)
+                        if aisle != old_aisle:
+                            updates.append("aisle = ?")
+                            params.append(aisle)
+                        if stock_status != old_stock:
+                            updates.append("stock_status = ?")
+                            params.append(stock_status)
+                            
+                        if updates:
+                            params.append(prod_id)
+                            c.execute(f"UPDATE products SET {', '.join(updates)} WHERE id = ?", tuple(params))
+                            updated += 1
+                        else:
+                            unchanged += 1
+                    else:
+                        c.execute(
+                            "INSERT INTO products (aisle, name, price, stock_status) VALUES (?, ?, ?, ?)",
+                            (aisle, name, price, stock_status)
+                        )
+                        inserted += 1
+                        
                 conn.commit()
             except Exception as ex:
                 conn.rollback()
                 conn.close()
                 return self.send_json(500, {"error": str(ex)})
+                
             conn.close()
-            print(f"📦 Bulk import: {inserted} products added")
-            return self.send_json(201, {"success": True, "inserted": inserted})
+            print(f"📦 Bulk import complete: {inserted} inserted, {updated} updated, {unchanged} unchanged")
+            return self.send_json(201, {
+                "success": True, 
+                "inserted": inserted, 
+                "updated": updated, 
+                "unchanged": unchanged
+            })
 
         self.send_json(404, {"error": "Endpoint not found"})
 

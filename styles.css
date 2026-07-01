@@ -2496,3 +2496,83 @@ footer {
     display: none !important;
   }
 }
+
+/* ─── PROMO BANNER POPUP ─── */
+.promo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  padding: 20px;
+}
+.promo-modal.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.promo-modal-content {
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 85vh;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(30px);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.promo-modal.open .promo-modal-content {
+  transform: translateY(0);
+}
+.promo-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 28px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.promo-modal-close:hover {
+  background: rgba(0,0,0,0.8);
+}
+.promo-body {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.promo-body img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+.promo-body iframe {
+  width: 100%;
+  height: 75vh;
+  border: none;
+  display: block;
+}

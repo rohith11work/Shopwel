@@ -156,6 +156,7 @@
                 <div class="nav-link active" onclick="switchView('orders')">Order History</div>
                 <div class="nav-link" onclick="switchView('products')">Products</div>
                 <div class="nav-link" onclick="switchView('stats')">Statistics</div>
+                <div class="nav-link" onclick="switchView('banner')">Promo Popup</div>
                 <a class="nav-link" href="sticker.html" target="_blank" style="text-decoration: none;">Stickers & QR</a>
             </div>
             <button class="btn" style="width:auto; padding: 6px 16px; background: rgba(255,255,255,0.2)" onclick="logout()">Logout</button>
@@ -211,18 +212,23 @@
                         <div class="import-step">
                             <label>1. Download Template</label>
                             <button class="btn" style="width:auto" onclick="downloadExcelTemplate()">⬇ Download Excel Template</button>
-                            <small style="color:#6b7280;display:block;margin-top:4px;">Format columns: <code>Category</code>, <code>Product Name</code>, <code>Price</code></small>
+                            <small style="color:#6b7280;display:block;margin-top:4px;">Format columns: <code>Category</code>, <code>Product Name</code>, <code>Price</code>, <code>Stock Status</code> (Optional)</small>
                         </div>
                         <div class="import-step">
                             <label>2. Upload Filled Excel or CSV file</label>
                             <input type="file" id="csvFileInput" accept=".csv,text/csv,.xlsx,.xls" onchange="parseImportFile(event)" class="input-box" style="padding:8px;">
+                            
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:12px;">
+                                <input type="checkbox" id="markMissingOutStock" style="width:16px; height:16px; cursor:pointer;">
+                                <label for="markMissingOutStock" style="cursor:pointer; font-weight:normal; font-size:13px; color:#4b5563; user-select:none;">Mark all other products NOT in this file as "Out of Stock"</label>
+                            </div>
                         </div>
                         <div id="csvPreviewWrap" style="display:none;">
                             <div class="import-step">
                                 <label>3. Preview (<span id="csvRowCount">0</span> rows)</label>
                                 <div class="preview-table-wrap">
                                     <table id="csvPreviewTable">
-                                        <thead><tr><th>#</th><th>Category</th><th>Product Name</th><th>Price (₹)</th></tr></thead>
+                                        <thead><tr><th>#</th><th>Category</th><th>Product Name</th><th>Price (₹)</th><th>Status</th></tr></thead>
                                         <tbody id="csvPreviewBody"></tbody>
                                     </table>
                                 </div>
@@ -298,6 +304,70 @@
                                 <!-- Stats injected here -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROMO POPUP VIEW -->
+            <div id="view-banner" class="view">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Promotional Banner (Popup Poster)</h2>
+                    </div>
+                    <div class="card-body" style="padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+                        <p style="color: #4b5563; font-size: 14px;">
+                            Upload a promotional image (PNG, JPG) or PDF poster. Whenever a customer opens the homepage, this poster will show up as a popup overlay.
+                        </p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                            <!-- Upload Controls -->
+                            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px;">
+                                <h3 style="font-size: 15px; font-weight: 600;">📤 Upload New Poster</h3>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <label style="font-size: 13px; font-weight: 600; color: #4b5563;">1. Choose File Type</label>
+                                    <select id="bannerFileType" class="filter-select" style="width: 100%;" onchange="updateAcceptTypes()">
+                                        <option value="image">Image (PNG, JPG, WEBP)</option>
+                                        <option value="pdf">PDF Document (.pdf)</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <label style="font-size: 13px; font-weight: 600; color: #4b5563;">2. Choose Poster File</label>
+                                    <input type="file" id="bannerFileInput" accept=".png,.jpg,.jpeg,.webp" class="input-box" style="padding: 8px; width: 100%;">
+                                </div>
+                                
+                                <button class="btn" onclick="uploadBanner()" style="width: 100%;">Upload &amp; Activate Poster</button>
+                            </div>
+                            
+                            <!-- Current Status & Settings -->
+                            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; min-height: 250px;">
+                                <h3 style="font-size: 15px; font-weight: 600;">📊 Current Status</h3>
+                                
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                                    <span style="font-size: 14px; font-weight: 500;">Status:</span>
+                                    <span id="bannerStatusBadge" style="font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 99px; background: #e5e7eb; color: #4b5563;">Loading...</span>
+                                </div>
+                                
+                                <div style="font-size: 13px; color: #4b5563; display: flex; flex-direction: column; gap: 4px;">
+                                    <div><strong>File:</strong> <span id="bannerFilename">-</span></div>
+                                    <div><strong>Type:</strong> <span id="bannerType">-</span></div>
+                                </div>
+                                
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <button id="btnToggleBanner" class="btn" style="flex: 1;" onclick="toggleBanner()">Enable Banner</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Area -->
+                        <div id="bannerPreviewContainer" style="display: none; border-top: 1px solid var(--border); padding-top: 20px; text-align: center;">
+                            <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 15px; text-align: left;">🖼️ Live Preview</h3>
+                            <div style="max-width: 500px; margin: 0 auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                                <img id="bannerImagePreview" src="" style="max-width: 100%; display: none; border-radius: 6px;" alt="Banner Preview">
+                                <iframe id="bannerPdfPreview" src="" style="width: 100%; height: 400px; display: none; border: none; border-radius: 6px;"></iframe>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -384,12 +454,14 @@
         if(viewName === 'orders') loadOrders();
         if(viewName === 'products') loadProducts();
         if(viewName === 'stats') loadStats();
+        if(viewName === 'banner') loadBannerStatus();
     }
 
     function loadAllData() {
         loadOrders();
         loadProducts();
         loadStats();
+        loadBannerStatus();
     }
 
     /* ─── Orders ──────────────────────────────── */
@@ -574,6 +646,7 @@
                 const categoryIdx = headers.findIndex(h => h.includes('category') || h.includes('aisle') || h.includes('group'));
                 const nameIdx = headers.findIndex(h => h.includes('name') || h.includes('product') || h.includes('item'));
                 const priceIdx = headers.findIndex(h => h.includes('price') || h.includes('rate') || h.includes('cost') || h.includes('mrp'));
+                const stockIdx = headers.findIndex(h => h.includes('stock') || h.includes('status') || h.includes('avail') || h.includes('qty') || h.includes('quant'));
 
                 if (nameIdx === -1) {
                     return setImportStatus("Could not find a 'Product Name' or 'Name' column in headers.", "error");
@@ -596,15 +669,28 @@
                     }
                     const price = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0;
 
+                    let stockStatus = "in_stock";
+                    if (stockIdx !== -1 && row[stockIdx] !== undefined) {
+                        const rawStock = String(row[stockIdx]).trim().toLowerCase();
+                        if (rawStock === "0" || rawStock === "out of stock" || rawStock === "no" || rawStock === "nil" || rawStock === "sold out" || rawStock === "out_of_stock") {
+                            stockStatus = "out_of_stock";
+                        }
+                    }
+
                     if (!name) continue;
 
-                    _parsedCsvRows.push({ aisle: aisle || "Other", name, price });
+                    _parsedCsvRows.push({ aisle: aisle || "Other", name, price, stock_status: stockStatus });
                     tbody.innerHTML += `
                         <tr>
                             <td>${validRowIndex + 1}</td>
                             <td>${aisle || "Other"}</td>
                             <td>${name}</td>
                             <td>₹${price.toFixed(2)}</td>
+                            <td>
+                                <span style="font-size:11px; font-weight:bold; padding:2px 6px; border-radius:99px; ${stockStatus === 'in_stock' ? 'background:#e8f5ed; color:#1a7a4c' : 'background:#fee2e2; color:#ef4444'}">
+                                    ${stockStatus === 'in_stock' ? 'In Stock' : 'Out of Stock'}
+                                </span>
+                            </td>
                         </tr>
                     `;
                     validRowIndex++;
@@ -636,19 +722,25 @@
         if (_parsedCsvRows.length === 0) {
             return setImportStatus('No valid rows to import.', 'error');
         }
+        
+        const markMissing = document.getElementById('markMissingOutStock').checked;
         setImportStatus(`Importing ${_parsedCsvRows.length} products…`, 'info');
         try {
-            const res = await fetch('/api/products/bulk', {
+            const res = await fetch(`/api/products/bulk?mark_missing_out_of_stock=${markMissing}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ admin_key: _key, products: _parsedCsvRows })
             });
             const data = await res.json();
             if (res.ok) {
-                setImportStatus(`✅ Successfully imported ${data.inserted} products!`, 'success');
+                const insertedMsg = data.inserted > 0 ? `${data.inserted} added` : '';
+                const updatedMsg = data.updated > 0 ? `${data.updated} updated` : '';
+                const parts = [insertedMsg, updatedMsg].filter(Boolean).join(', ');
+                setImportStatus(`✅ Import complete! ${parts || 'No changes made'} (${data.unchanged} unchanged).`, 'success');
                 _parsedCsvRows = [];
                 document.getElementById('csvPreviewWrap').style.display = 'none';
                 document.getElementById('csvFileInput').value = '';
+                document.getElementById('markMissingOutStock').checked = false;
                 loadProducts();
             } else {
                 setImportStatus(`❌ Error: ${data.error || 'Unknown error'}`, 'error');
@@ -726,6 +818,142 @@
             loadProducts();
         } else {
             alert("Failed to delete product.");
+        }
+    }
+
+    /* ─── Promo Banner (Popup Poster) ──────────────── */
+    let _bannerActive = false;
+
+    function updateAcceptTypes() {
+        const type = document.getElementById('bannerFileType').value;
+        const input = document.getElementById('bannerFileInput');
+        if (type === 'image') {
+            input.setAttribute('accept', '.png,.jpg,.jpeg,.webp');
+        } else {
+            input.setAttribute('accept', '.pdf');
+        }
+        input.value = '';
+    }
+
+    async function loadBannerStatus() {
+        try {
+            const res = await fetch('/api/promo-banner');
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            _bannerActive = data.active;
+            
+            const badge = document.getElementById('bannerStatusBadge');
+            badge.textContent = _bannerActive ? 'Active' : 'Disabled';
+            badge.style.background = _bannerActive ? '#e8f5ed' : '#fee2e2';
+            badge.style.color = _bannerActive ? '#1a7a4c' : '#ef4444';
+            
+            document.getElementById('bannerFilename').textContent = data.filename || '-';
+            document.getElementById('bannerType').textContent = data.type === 'image' ? 'Image File' : (data.type === 'pdf' ? 'PDF Document' : '-');
+            
+            const btn = document.getElementById('btnToggleBanner');
+            btn.textContent = _bannerActive ? 'Disable Banner' : 'Enable Banner';
+            btn.style.background = _bannerActive ? '#ef4444' : '#1a7a4a';
+            
+            const imgPreview = document.getElementById('bannerImagePreview');
+            const pdfPreview = document.getElementById('bannerPdfPreview');
+            const previewContainer = document.getElementById('bannerPreviewContainer');
+            
+            if (data.filename) {
+                previewContainer.style.display = 'block';
+                if (data.type === 'image') {
+                    imgPreview.src = `images/${data.filename}?v=${Date.now()}`;
+                    imgPreview.style.display = 'inline-block';
+                    pdfPreview.style.display = 'none';
+                } else if (data.type === 'pdf') {
+                    pdfPreview.src = `images/${data.filename}?v=${Date.now()}`;
+                    pdfPreview.style.display = 'block';
+                    imgPreview.style.display = 'none';
+                }
+            } else {
+                previewContainer.style.display = 'none';
+                imgPreview.style.display = 'none';
+                pdfPreview.style.display = 'none';
+            }
+        } catch (err) {
+            console.error("Failed to load banner status:", err);
+        }
+    }
+
+    async function uploadBanner() {
+        const input = document.getElementById('bannerFileInput');
+        const file = input.files[0];
+        if (!file) return alert("Please select a file to upload first.");
+        
+        const type = document.getElementById('bannerFileType').value;
+        const uploadUrl = `/api/promo-banner?action=upload&admin_key=${encodeURIComponent(_key)}&type=${type}`;
+        
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const arrayBuffer = e.target.result;
+                const uploadBtn = document.querySelector('button[onclick="uploadBanner()"]');
+                uploadBtn.textContent = "Uploading...";
+                uploadBtn.disabled = true;
+                
+                try {
+                    const res = await fetch(uploadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': file.type || 'application/octet-stream'
+                        },
+                        body: arrayBuffer
+                    });
+                    
+                    if (res.ok) {
+                        alert("Poster uploaded and activated successfully!");
+                        input.value = '';
+                        loadBannerStatus();
+                    } else {
+                        const errData = await res.json();
+                        alert(`Upload failed: ${errData.error || 'Server error'}`);
+                    }
+                } catch (fetchErr) {
+                    alert(`Network error during upload: ${fetchErr.message}`);
+                } finally {
+                    uploadBtn.textContent = "Upload & Activate Poster";
+                    uploadBtn.disabled = false;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } catch (err) {
+            alert(`File reading error: ${err.message}`);
+        }
+    }
+
+    async function toggleBanner() {
+        const targetState = !_bannerActive;
+        const btn = document.getElementById('btnToggleBanner');
+        btn.textContent = "Updating...";
+        btn.disabled = true;
+        
+        try {
+            const res = await fetch('/api/promo-banner?action=toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    admin_key: _key,
+                    active: targetState
+                })
+            });
+            
+            if (res.ok) {
+                loadBannerStatus();
+            } else {
+                const errData = await res.json();
+                alert(`Action failed: ${errData.error || 'Server error'}`);
+            }
+        } catch (err) {
+            alert(`Network error: ${err.message}`);
+        } finally {
+            btn.disabled = false;
         }
     }
 

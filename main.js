@@ -41,6 +41,51 @@ function getStoreStatus() {
 }
 getStoreStatus();
 
+// ─── Promo Banner (Popup Poster) ───
+async function checkPromoBanner() {
+  const modal = document.getElementById('promoBannerModal');
+  if (!modal) return;
+  
+  if (sessionStorage.getItem('promo_banner_closed') === 'true') return;
+  
+  try {
+    const res = await fetch('/api/promo-banner');
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    if (data.active && data.filename) {
+      const img = document.getElementById('promoImage');
+      const pdf = document.getElementById('promoPdf');
+      
+      if (data.type === 'image') {
+        img.src = `images/${data.filename}`;
+        img.style.display = 'block';
+        pdf.style.display = 'none';
+      } else if (data.type === 'pdf') {
+        pdf.src = `images/${data.filename}`;
+        pdf.style.display = 'block';
+        img.style.display = 'none';
+      }
+      
+      setTimeout(() => {
+        modal.classList.add('open');
+      }, 800);
+    }
+  } catch (err) {
+    console.error("Promo banner check failed:", err);
+  }
+}
+
+function closePromoBanner() {
+  const modal = document.getElementById('promoBannerModal');
+  if (modal) {
+    modal.classList.remove('open');
+    sessionStorage.setItem('promo_banner_closed', 'true');
+  }
+}
+
+checkPromoBanner();
+
 // ─── Flash Deal countdown ───
 (function () {
   const banner = document.getElementById('flashBanner');

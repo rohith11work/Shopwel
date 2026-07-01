@@ -694,6 +694,17 @@
         </div>
     </div>
 
+    <!-- Promotional Poster Modal (Popup Banner) -->
+    <div id="promoBannerModal" class="promo-modal" onclick="if(event.target===this) closePromoBanner()">
+        <div class="promo-modal-content">
+            <button class="promo-modal-close" onclick="closePromoBanner()">&times;</button>
+            <div class="promo-body">
+                <img id="promoImage" src="" style="display: none;" alt="Special Offer">
+                <iframe id="promoPdf" src="" style="display: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
     <script src="main.js?v=6"></script>
 </body>
 
