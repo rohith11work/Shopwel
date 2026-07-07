@@ -472,6 +472,7 @@
         const tbody = document.getElementById('ordersTableBody');
         tbody.innerHTML = '';
         
+        let htmlChunks = [];
         data.orders.forEach(o => {
             const items = JSON.parse(o.items_json);
             const itemsList = items.map(i => `${i.name} (x${i.qty})`).join(', ');
@@ -483,7 +484,7 @@
                    <button class="btn btn-danger" style="padding:4px 10px; font-size:12px;" onclick="deleteOrder(${o.id})">Delete</button>`
                 : `<button class="btn btn-danger" style="padding:4px 10px; font-size:12px;" onclick="deleteOrder(${o.id})">Delete</button>`;
 
-            tbody.innerHTML += `
+            htmlChunks.push(`
                 <tr>
                     <td>#${o.id}</td>
                     <td>${o.created_at}</td>
@@ -493,8 +494,9 @@
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
                     <td>${actions}</td>
                 </tr>
-            `;
+            `);
         });
+        tbody.innerHTML = htmlChunks.join('');
     }
 
     async function updateOrderStatus(id, status) {
@@ -536,15 +538,17 @@
         const tbody = document.getElementById('statsTableBody');
         tbody.innerHTML = '';
         
+        let htmlChunks = [];
         data.top_items.forEach(i => {
-            tbody.innerHTML += `
+            htmlChunks.push(`
                 <tr>
                     <td style="font-weight:600">${i.name}</td>
                     <td>${i.qty} units</td>
                     <td>₹${i.revenue.toFixed(2)}</td>
                 </tr>
-            `;
+            `);
         });
+        tbody.innerHTML = htmlChunks.join('');
     }
 
     /* ─── Products ────────────────────────────── */
@@ -580,10 +584,11 @@
         const tbody = document.getElementById('productsTableBody');
         tbody.innerHTML = '';
         
+        let htmlChunks = [];
         products.forEach(p => {
             const isOut = p.stock_status === 'out_of_stock';
             const badge = isOut ? '<span class="badge out-of-stock">Out of Stock</span>' : '<span class="badge in-stock">In Stock</span>';
-            tbody.innerHTML += `
+            htmlChunks.push(`
                 <tr>
                     <td>${p.id}</td>
                     <td>${p.aisle}</td>
@@ -595,8 +600,9 @@
                         <button class="btn btn-danger" style="padding:4px 10px; font-size:12px; width:auto" onclick="deleteProduct(${p.id})">Delete</button>
                     </td>
                 </tr>
-            `;
+            `);
         });
+        tbody.innerHTML = htmlChunks.join('');
     }
 
     /* ─── CSV Bulk Import ─────────────────────── */
@@ -657,6 +663,7 @@
                 tbody.innerHTML = '';
 
                 let validRowIndex = 0;
+                let htmlChunks = [];
                 for (let i = 1; i < jsonData.length; i++) {
                     const row = jsonData[i];
                     if (!row || row.length === 0) continue;
@@ -680,21 +687,40 @@
                     if (!name) continue;
 
                     _parsedCsvRows.push({ aisle: aisle || "Other", name, price, stock_status: stockStatus });
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${validRowIndex + 1}</td>
-                            <td>${aisle || "Other"}</td>
-                            <td>${name}</td>
-                            <td>₹${price.toFixed(2)}</td>
-                            <td>
-                                <span style="font-size:11px; font-weight:bold; padding:2px 6px; border-radius:99px; ${stockStatus === 'in_stock' ? 'background:#e8f5ed; color:#1a7a4c' : 'background:#fee2e2; color:#ef4444'}">
-                                    ${stockStatus === 'in_stock' ? 'In Stock' : 'Out of Stock'}
-                                </span>
-                            </td>
-                        </tr>
-                    `;
+                    
+                    if (validRowIndex < 50) {
+                        htmlChunks.push(`
+                            <tr>
+                                <td>${validRowIndex + 1}</td>
+                                <td>${aisle || "Other"}</td>
+                                <td>${name}</td>
+                                <td>₹${price.toFixed(2)}</td>
+                                <td>
+                                    <span style="font-size:11px; font-weight:bold; padding:2px 6px; border-radius:99px; ${stockStatus === 'in_stock' ? 'background:#e8f5ed; color:#1a7a4c' : 'background:#fee2e2; color:#ef4444'}">
+                                        ${stockStatus === 'in_stock' ? 'In Stock' : 'Out of Stock'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `);
+                    }
                     validRowIndex++;
                 }
+
+                if (_parsedCsvRows.length === 0) {
+                    return setImportStatus("No valid products found in the file.", "error");
+                }
+
+                if (validRowIndex > 50) {
+                    htmlChunks.push(`
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#6b7280; font-style:italic; padding:15px; background:#f9fafb;">
+                                💡 Showing first 50 rows of preview. ${validRowIndex - 50} more products are loaded and ready to import!
+                            </td>
+                        </tr>
+                    `);
+                }
+
+                tbody.innerHTML = htmlChunks.join('');
 
                 if (_parsedCsvRows.length === 0) {
                     return setImportStatus("No valid products found in the file.", "error");
