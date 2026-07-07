@@ -631,6 +631,42 @@
         XLSX.writeFile(wb, "shopwel_import_template.xlsx");
     }
 
+    /* Smart Auto-Categorization Database */
+    const CATEGORY_KEYWORDS = [
+        {
+            name: "Fresh Produce",
+            keywords: ["tomato", "onion", "potato", "banana", "apple", "fruit", "veg", "chilli", "spinach", "coriander", "ginger", "garlic", "lemon", "lime", "orange", "mango", "grape", "leaf", "leaves", "capsicum", "carrot", "cucumber", "methi", "palak", "beans", "peas", "onion", "garlic", "potato"]
+        },
+        {
+            name: "Dairy & Eggs",
+            keywords: ["milk", "curd", "paneer", "butter", "cheese", "egg", "ghee", "yogurt", "cream", "amul", "britannia", "nandini", "milky mist"]
+        },
+        {
+            name: "Snacks & Beverages",
+            keywords: ["chips", "biscuit", "cookie", "maggi", "noodle", "pasta", "tea", "coffee", "juice", "drink", "cola", "soda", "pepsi", "coke", "lays", "kurkure", "chocolate", "cadbury", "snack", "mixture", "namkeen"]
+        },
+        {
+            name: "Household & Cleaning",
+            keywords: ["soap", "surf", "detergent", "wash", "vim", "toilet", "tissue", "brush", "cleaner", "shampoo", "paste", "colgate", "handwash", "harpic", "lizol", "scrub", "phenyl", "liquid", "rin", "aerial", "tide", "pepsodent", "sensodyne", "close up"]
+        },
+        {
+            name: "Staples & Grains",
+            keywords: ["rice", "atta", "dal", "oil", "sugar", "salt", "flour", "maida", "sooji", "wheat", "pulse", "lentil", "gram", "mustard", "jeera", "pepper", "masala", "powder", "turmeric", "spices", "toor", "moong", "chana", "urad"]
+        }
+    ];
+
+    function autoCategorize(productName) {
+        const nameLower = productName.toLowerCase();
+        for (const cat of CATEGORY_KEYWORDS) {
+            for (const kw of cat.keywords) {
+                if (nameLower.includes(kw)) {
+                    return cat.name;
+                }
+            }
+        }
+        return "Groceries"; // premium fallback instead of "Other"
+    }
+
     function parseImportFile(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -668,8 +704,11 @@
                     const row = jsonData[i];
                     if (!row || row.length === 0) continue;
 
-                    const aisle = categoryIdx !== -1 ? String(row[categoryIdx] || '').trim() : "Other";
                     const name = String(row[nameIdx] || '').trim();
+                    let aisle = categoryIdx !== -1 ? String(row[categoryIdx] || '').trim() : "";
+                    if (!aisle && name) {
+                        aisle = autoCategorize(name);
+                    }
                     let rawPrice = "0";
                     if (priceIdx !== -1 && row[priceIdx] !== undefined) {
                         rawPrice = String(row[priceIdx]);
