@@ -70,6 +70,14 @@ def init_db():
         price REAL NOT NULL,
         stock_status TEXT DEFAULT 'in_stock'
     )""")
+    try:
+        c.execute("ALTER TABLE products ADD COLUMN mrp REAL")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE products ADD COLUMN supplier TEXT")
+    except sqlite3.OperationalError:
+        pass
     c.execute("""CREATE TABLE IF NOT EXISTS orders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_phone TEXT NOT NULL,
@@ -334,11 +342,13 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
             name = str(body.get("name", ""))
             price = float(body.get("price", 0))
             stock_status = str(body.get("stock_status", "in_stock"))
+            mrp = float(body.get("mrp")) if body.get("mrp") is not None else None
+            supplier = str(body.get("supplier", "")).strip() or None
             
             conn = sqlite3.connect(DB_FILE)
             c = conn.cursor()
-            c.execute("INSERT INTO products (aisle, name, price, stock_status) VALUES (?, ?, ?, ?)",
-                      (aisle, name, price, stock_status))
+            c.execute("INSERT INTO products (aisle, name, price, stock_status, mrp, supplier) VALUES (?, ?, ?, ?, ?, ?)",
+                      (aisle, name, price, stock_status, mrp, supplier))
             prod_id = c.lastrowid
             conn.commit()
             conn.close()
@@ -441,7 +451,6 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
                 c.execute("BEGIN")
                 
                 # If marking missing, reset all products to out_of_stock first
-                # The loop will set active items back to in_stock
                 if mark_missing:
                     c.execute("UPDATE products SET stock_status = 'out_of_stock'")
 
@@ -450,16 +459,18 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
                     name  = str(p.get("name", "")).strip()
                     price = float(p.get("price", 0))
                     stock_status = str(p.get("stock_status", "in_stock")).strip()
+                    mrp = float(p.get("mrp")) if p.get("mrp") is not None else None
+                    supplier = str(p.get("supplier", "")).strip() or None
                     
                     if not name:
                         continue
 
                     # Search by product name
-                    c.execute("SELECT id, price, aisle, stock_status FROM products WHERE name = ?", (name,))
+                    c.execute("SELECT id, price, aisle, stock_status, mrp, supplier FROM products WHERE name = ?", (name,))
                     existing = c.fetchone()
                     
                     if existing:
-                        prod_id, old_price, old_aisle, old_stock = existing
+                        prod_id, old_price, old_aisle, old_stock, old_mrp, old_supplier = existing
                         
                         updates = []
                         params = []
@@ -472,6 +483,12 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
                         if stock_status != old_stock:
                             updates.append("stock_status = ?")
                             params.append(stock_status)
+                        if mrp != old_mrp:
+                            updates.append("mrp = ?")
+                            params.append(mrp)
+                        if supplier != old_supplier:
+                            updates.append("supplier = ?")
+                            params.append(supplier)
                             
                         if updates:
                             params.append(prod_id)
@@ -481,8 +498,8 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
                             unchanged += 1
                     else:
                         c.execute(
-                            "INSERT INTO products (aisle, name, price, stock_status) VALUES (?, ?, ?, ?)",
-                            (aisle, name, price, stock_status)
+                            "INSERT INTO products (aisle, name, price, stock_status, mrp, supplier) VALUES (?, ?, ?, ?, ?, ?)",
+                            (aisle, name, price, stock_status, mrp, supplier)
                         )
                         inserted += 1
                         
@@ -556,6 +573,12 @@ class ShopwelHandler(http.server.SimpleHTTPRequestHandler):
             if "stock_status" in body:
                 updates.append("stock_status=?")
                 params.append(str(body["stock_status"]))
+            if "mrp" in body:
+                updates.append("mrp=?")
+                params.append(float(body["mrp"]) if body["mrp"] is not None else None)
+            if "supplier" in body:
+                updates.append("supplier=?")
+                params.append(str(body["supplier"]).strip() or None)
                 
             if not updates:
                 return self.send_json(400, {"error": "No fields to update"})

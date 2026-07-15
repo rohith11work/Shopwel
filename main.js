@@ -177,8 +177,12 @@ function renderProducts(products, searchQuery = '', aisleCountsArg = {}) {
   });
   
   const aisleIcons = {
-    "Fresh Produce": "🥦", "Dairy": "🥛", "Staples & Grains": "🛒",
-    "Snacks & Beverage": "🍪", "Household": "🧹"
+    "Dairy & Ice Cream": "🥛🍧",
+    "Tea, Coffee & Biscuits": "☕🍪",
+    "Snacks, Drinks & Chocolates": "🥤🍫",
+    "Cooking & Masalas": "🥘🌶️",
+    "Personal & Baby Care": "🧴👶",
+    "Household & Stationery": "🧹✏️"
   };
   
   for(const [aisle, prods] of Object.entries(aisles)) {
@@ -213,7 +217,15 @@ function renderProducts(products, searchQuery = '', aisleCountsArg = {}) {
       if(isOut) {
         label.innerHTML = `<span style="text-decoration:line-through">${p.name}</span> <span style="color:#ef4444;font-size:12px;display:block;">(Out of Stock)</span>`;
       } else {
-        label.innerHTML = `${p.name} <span style="font-size:12px;color:#6b7280;display:block;">₹${p.price.toFixed(2)}</span>`;
+        const hasDiscount = p.mrp && p.mrp > p.price;
+        const mrpHtml = hasDiscount 
+          ? `<span style="text-decoration:line-through;color:#ef4444;font-size:11px;margin-right:6px;">₹${p.mrp.toFixed(2)}</span>` 
+          : '';
+        label.innerHTML = `
+          ${p.name} 
+          <span style="font-size:13px;display:block;margin-top:2px;">
+            ${mrpHtml}<span style="color:#1a7a4c;font-weight:bold;">₹${p.price.toFixed(2)}</span>
+          </span>`;
       }
       
       const qtyVal = isChecked ? selectedItems[`p_${p.id}`].qty : 1;
@@ -347,11 +359,15 @@ function renderImpulseUpsells() {
     if(isOut) card.style.opacity = '0.5';
     
     const safeName = p.name.toLowerCase().replace(/\s+/g, '_');
+    const hasDiscount = p.mrp && p.mrp > p.price;
+    const mrpHtml = hasDiscount 
+      ? `<span style="text-decoration:line-through;color:#ef4444;font-size:10px;margin-right:4px;">₹${p.mrp.toFixed(2)}</span>` 
+      : '';
     card.innerHTML = `
       <img src="images/${safeName}.png" onerror="this.src='images/placeholder.svg'" alt="${p.name}">
       <div class="cm-im-info">
         <span class="cm-im-name">${p.name}</span>
-        <span class="cm-im-price">₹${p.price.toFixed(2)}</span>
+        <span class="cm-im-price">${mrpHtml}<span style="color:#1a7a4c;font-weight:bold;">₹${p.price.toFixed(2)}</span></span>
       </div>
       <div class="cm-cb-wrapper">
         <input type="checkbox" class="cm-cb" value="${p.id}" ${isChecked ? 'checked' : ''} ${isOut ? 'disabled' : ''}>
