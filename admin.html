@@ -684,14 +684,38 @@
                     return setImportStatus("The file is empty or only contains headers.", "error");
                 }
 
-                const headers = jsonData[0].map(h => String(h || '').trim().toLowerCase());
-                const categoryIdx = headers.findIndex(h => h.includes('category') || h.includes('aisle') || h.includes('group'));
-                const nameIdx = headers.findIndex(h => h.includes('name') || h.includes('product') || h.includes('item'));
-                const priceIdx = headers.findIndex(h => h.includes('price') || h.includes('rate') || h.includes('cost') || h.includes('mrp'));
-                const stockIdx = headers.findIndex(h => h.includes('stock') || h.includes('status') || h.includes('avail') || h.includes('qty') || h.includes('quant'));
+                // Smart header row detection — scan first 20 rows to find the real header
+                let headerRowIdx = 0;
+                let headers = [];
+                for (let r = 0; r < Math.min(20, jsonData.length); r++) {
+                    const row = jsonData[r];
+                    const rowStr = row.map(h => String(h || '').trim().toLowerCase()).join(' ');
+                    // A header row will contain typical field keywords
+                    if (rowStr.includes('name') || rowStr.includes('item') || rowStr.includes('product')) {
+                        headerRowIdx = r;
+                        headers = row.map(h => String(h || '').trim().toLowerCase());
+                        break;
+                    }
+                }
+                if (headers.length === 0) {
+                    headers = jsonData[0].map(h => String(h || '').trim().toLowerCase());
+                }
+
+                // Prefer 'sale price' / 'selling price' / 'sp' over 'rate' / 'mrp' / 'cost'
+                // to show the price customers actually pay
+                const categoryIdx = headers.findIndex(h => h.includes('category') || h.includes('aisle') || h.includes('group') || h.includes('dept'));
+                const nameIdx = headers.findIndex(h => h === 'item name' || h === 'product name' || h === 'item' || h.includes('name') || h.includes('product') || h.includes('description') || h.includes('desc'));
+                // Prefer sale price first, then MRP, then rate, then cost
+                let priceIdx = headers.findIndex(h => h === 'sale price' || h === 'selling price' || h === 'sp' || h === 'saleprice');
+                if (priceIdx === -1) priceIdx = headers.findIndex(h => h === 'mrp');
+                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('sale') && h.includes('price'));
+                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('selling'));
+                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('price') || h.includes('rate') || h.includes('mrp'));
+                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('cost'));
+                const stockIdx = headers.findIndex(h => h.includes('stock') || h.includes('status') || h.includes('avail') || (h.includes('qty') && !h.includes('qtyi')));
 
                 if (nameIdx === -1) {
-                    return setImportStatus("Could not find a 'Product Name' or 'Name' column in headers.", "error");
+                    return setImportStatus("Could not find a product name column. Please check your file has a column called 'Item Name', 'Product Name', or 'Name'.", "error");
                 }
 
                 _parsedCsvRows = [];
@@ -700,7 +724,8 @@
 
                 let validRowIndex = 0;
                 let htmlChunks = [];
-                for (let i = 1; i < jsonData.length; i++) {
+                // Start reading from the row AFTER the detected header row
+                for (let i = headerRowIdx + 1; i < jsonData.length; i++) {
                     const row = jsonData[i];
                     if (!row || row.length === 0) continue;
 
