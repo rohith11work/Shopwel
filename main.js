@@ -219,12 +219,12 @@ function renderProducts(products, searchQuery = '', aisleCountsArg = {}) {
       } else {
         const hasDiscount = p.mrp && p.mrp > p.price;
         const mrpHtml = hasDiscount 
-          ? `<span style="text-decoration:line-through;color:#ef4444;font-size:11px;margin-right:6px;">₹${p.mrp.toFixed(2)}</span>` 
+          ? `<span style="text-decoration:line-through;color:#991b1b;font-size:11px;margin-right:6px;">₹${p.mrp.toFixed(2)}</span>` 
           : '';
         label.innerHTML = `
           ${p.name} 
-          <span style="font-size:13px;display:block;margin-top:2px;">
-            ${mrpHtml}<span style="color:#1a7a4c;font-weight:bold;">₹${p.price.toFixed(2)}</span>
+          <span style="font-size:13px;display:block;margin-top:4px;">
+            ${mrpHtml}<span style="color:#137333;background:#e6f4ea;padding:2px 6px;border-radius:4px;font-weight:bold;font-size:12px;">₹${p.price.toFixed(2)}</span>
           </span>`;
       }
       
@@ -361,13 +361,13 @@ function renderImpulseUpsells() {
     const safeName = p.name.toLowerCase().replace(/\s+/g, '_');
     const hasDiscount = p.mrp && p.mrp > p.price;
     const mrpHtml = hasDiscount 
-      ? `<span style="text-decoration:line-through;color:#ef4444;font-size:10px;margin-right:4px;">₹${p.mrp.toFixed(2)}</span>` 
+      ? `<span style="text-decoration:line-through;color:#991b1b;font-size:10px;margin-right:4px;">₹${p.mrp.toFixed(2)}</span>` 
       : '';
     card.innerHTML = `
       <img src="images/${safeName}.png" onerror="this.src='images/placeholder.svg'" alt="${p.name}">
       <div class="cm-im-info">
         <span class="cm-im-name">${p.name}</span>
-        <span class="cm-im-price">${mrpHtml}<span style="color:#1a7a4c;font-weight:bold;">₹${p.price.toFixed(2)}</span></span>
+        <span class="cm-im-price">${mrpHtml}<span style="color:#137333;background:#e6f4ea;padding:1px 5px;border-radius:4px;font-weight:bold;font-size:11px;">₹${p.price.toFixed(2)}</span></span>
       </div>
       <div class="cm-cb-wrapper">
         <input type="checkbox" class="cm-cb" value="${p.id}" ${isChecked ? 'checked' : ''} ${isOut ? 'disabled' : ''}>
