@@ -237,7 +237,7 @@
                                 <label>3. Preview (<span id="csvRowCount">0</span> rows)</label>
                                 <div class="preview-table-wrap">
                                     <table id="csvPreviewTable">
-                                        <thead><tr><th>#</th><th>Category</th><th>Product Name</th><th>Price (₹)</th><th>Status</th></tr></thead>
+                                        <thead><tr><th>#</th><th>Category</th><th>Product Name</th><th>MRP (₹)</th><th>SP 2 (₹)</th><th>Supplier</th><th>Status</th></tr></thead>
                                         <tbody id="csvPreviewBody"></tbody>
                                     </table>
                                 </div>
@@ -263,7 +263,9 @@
                                     <th>ID</th>
                                     <th>Aisle</th>
                                     <th>Name</th>
-                                    <th>Price (₹)</th>
+                                    <th>MRP (₹)</th>
+                                    <th>SP 2 (₹)</th>
+                                    <th>Supplier</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -399,8 +401,16 @@
                 <input type="text" id="prodName" class="input-box" placeholder="e.g. Tomatoes 1kg">
             </div>
             <div class="form-group">
-                <label>Price (₹)</label>
-                <input type="number" id="prodPrice" class="input-box" placeholder="e.g. 40">
+                <label>MRP (₹)</label>
+                <input type="number" step="0.01" id="prodMrp" class="input-box" placeholder="e.g. 45">
+            </div>
+            <div class="form-group">
+                <label>SP 2 / Selling Price (₹)</label>
+                <input type="number" step="0.01" id="prodPrice" class="input-box" placeholder="e.g. 40">
+            </div>
+            <div class="form-group">
+                <label>Supplier</label>
+                <input type="text" id="prodSupplier" class="input-box" placeholder="e.g. URS DISTRIBUTORS">
             </div>
             <div class="form-group">
                 <label>Stock Status</label>
@@ -597,12 +607,16 @@
         products.forEach(p => {
             const isOut = p.stock_status === 'out_of_stock';
             const badge = isOut ? '<span class="badge out-of-stock">Out of Stock</span>' : '<span class="badge in-stock">In Stock</span>';
+            const mrpText = p.mrp ? `₹${parseFloat(p.mrp).toFixed(2)}` : '—';
+            const supplierText = p.supplier ? p.supplier : '—';
             htmlChunks.push(`
                 <tr>
                     <td>${p.id}</td>
                     <td>${p.aisle}</td>
                     <td style="font-weight:600">${p.name}</td>
+                    <td>${mrpText}</td>
                     <td>₹${p.price.toFixed(2)}</td>
+                    <td>${supplierText}</td>
                     <td>${badge}</td>
                     <td>
                         <button class="btn" style="padding:4px 10px; font-size:12px; width:auto; margin-right:5px" onclick="editProduct(${p.id})">Edit</button>
@@ -731,6 +745,8 @@
                               || h.includes('group') || h.includes('dept'));
         const stockIdx    = headers.findIndex(h => h.includes('stock') || h.includes('status')
                               || h.includes('avail'));
+        const mrpIdx      = headers.findIndex(h => h === 'mrp');
+        const supplierIdx = headers.findIndex(h => h === 'supplier');
 
         if (nameIdx === -1) {
             return setImportStatus(
@@ -757,6 +773,11 @@
             const rawPrice = priceIdx !== -1 ? String(row[priceIdx] || '0') : '0';
             const price    = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0;
 
+            const rawMrp   = mrpIdx !== -1 ? String(row[mrpIdx] || '') : '';
+            const mrp      = parseFloat(rawMrp.replace(/[^0-9.]/g, '')) || null;
+
+            const supplier = supplierIdx !== -1 ? String(row[supplierIdx] || '').trim() : '';
+
             let stockStatus = 'in_stock';
             if (stockIdx !== -1 && row[stockIdx] !== undefined) {
                 const s = String(row[stockIdx]).trim().toLowerCase();
@@ -766,7 +787,7 @@
                 }
             }
 
-            _parsedCsvRows.push({ aisle: aisle || 'Other', name, price, stock_status: stockStatus });
+            _parsedCsvRows.push({ aisle: aisle || 'Other', name, price, stock_status: stockStatus, mrp, supplier });
 
             if (validCount < 50) {
                 htmlChunks.push(`
@@ -774,7 +795,9 @@
                         <td>${validCount + 1}</td>
                         <td>${aisle || 'Other'}</td>
                         <td>${name}</td>
+                        <td>${mrp ? '₹' + mrp.toFixed(2) : '—'}</td>
                         <td>₹${price.toFixed(2)}</td>
+                        <td>${supplier || '—'}</td>
                         <td><span style="font-size:11px;font-weight:bold;padding:2px 6px;border-radius:99px;
                             ${stockStatus === 'in_stock' ? 'background:#e8f5ed;color:#1a7a4c' : 'background:#fee2e2;color:#ef4444'}">
                             ${stockStatus === 'in_stock' ? 'In Stock' : 'Out of Stock'}
@@ -789,7 +812,7 @@
         }
 
         if (validCount > 50) {
-            htmlChunks.push(`<tr><td colspan="5" style="text-align:center;color:#6b7280;font-style:italic;padding:15px;background:#f9fafb;">
+            htmlChunks.push(`<tr><td colspan="7" style="text-align:center;color:#6b7280;font-style:italic;padding:15px;background:#f9fafb;">
                 💡 Showing first 50 rows. ${validCount - 50} more products are queued and ready to import!
             </td></tr>`);
         }
@@ -884,7 +907,9 @@
         document.getElementById('prodId').value = '';
         document.getElementById('prodAisle').value = '';
         document.getElementById('prodName').value = '';
+        document.getElementById('prodMrp').value = '';
         document.getElementById('prodPrice').value = '';
+        document.getElementById('prodSupplier').value = '';
         document.getElementById('prodStock').value = 'in_stock';
         document.getElementById('productModal').style.display = 'flex';
     }
@@ -896,7 +921,9 @@
         document.getElementById('prodId').value = p.id;
         document.getElementById('prodAisle').value = p.aisle;
         document.getElementById('prodName').value = p.name;
+        document.getElementById('prodMrp').value = p.mrp || '';
         document.getElementById('prodPrice').value = p.price;
+        document.getElementById('prodSupplier').value = p.supplier || '';
         document.getElementById('prodStock').value = p.stock_status;
         document.getElementById('productModal').style.display = 'flex';
     }
@@ -911,7 +938,9 @@
             admin_key: _key,
             aisle: document.getElementById('prodAisle').value,
             name: document.getElementById('prodName').value,
+            mrp: document.getElementById('prodMrp').value ? parseFloat(document.getElementById('prodMrp').value) : null,
             price: document.getElementById('prodPrice').value,
+            supplier: document.getElementById('prodSupplier').value.trim() || null,
             stock_status: document.getElementById('prodStock').value
         };
         
