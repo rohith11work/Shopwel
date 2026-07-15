@@ -215,14 +215,23 @@
                             <small style="color:#6b7280;display:block;margin-top:4px;">Format columns: <code>Category</code>, <code>Product Name</code>, <code>Price</code>, <code>Stock Status</code> (Optional)</small>
                         </div>
                         <div class="import-step">
-                            <label>2. Upload Filled Excel or CSV file</label>
-                            <input type="file" id="csvFileInput" accept=".csv,text/csv,.xlsx,.xls" onchange="parseImportFile(event)" class="input-box" style="padding:8px;">
-                            
-                            <div style="display:flex; align-items:center; gap:8px; margin-top:12px;">
-                                <input type="checkbox" id="markMissingOutStock" style="width:16px; height:16px; cursor:pointer;">
-                                <label for="markMissingOutStock" style="cursor:pointer; font-weight:normal; font-size:13px; color:#4b5563; user-select:none;">Mark all other products NOT in this file as "Out of Stock"</label>
-                            </div>
-                        </div>
+                             <label>2. Upload File <span style="color:#6b7280; font-weight:normal;">— or paste a Google Sheets link</span></label>
+
+                             <!-- Option A: File upload -->
+                             <input type="file" id="csvFileInput" accept=".csv,text/csv,.xlsx,.xls" onchange="parseImportFile(event)" class="input-box" style="padding:8px;">
+
+                             <!-- Option B: Google Sheets URL -->
+                             <div style="display:flex; gap:8px; margin-top:10px;">
+                                 <input type="url" id="gsheetUrl" class="input-box" placeholder="🔗 Paste Google Sheets link here…" style="flex:1; padding:8px; font-size:13px;">
+                                 <button class="btn" style="width:auto; padding:8px 14px; font-size:13px; white-space:nowrap;" onclick="fetchFromGoogleSheet()">Load Sheet</button>
+                             </div>
+                             <small style="color:#6b7280; display:block; margin-top:4px;">⚠️ The Google Sheet must be set to <strong>"Anyone with the link can view"</strong></small>
+
+                             <div style="display:flex; align-items:center; gap:8px; margin-top:12px;">
+                                 <input type="checkbox" id="markMissingOutStock" style="width:16px; height:16px; cursor:pointer;">
+                                 <label for="markMissingOutStock" style="cursor:pointer; font-weight:normal; font-size:13px; color:#4b5563; user-select:none;">Mark all other products NOT in this file as "Out of Stock"</label>
+                             </div>
+                         </div>
                         <div id="csvPreviewWrap" style="display:none;">
                             <div class="import-step">
                                 <label>3. Preview (<span id="csvRowCount">0</span> rows)</label>
@@ -670,135 +679,165 @@
     function parseImportFile(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array', raw: false });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-
-                if (jsonData.length <= 1) {
-                    return setImportStatus("The file is empty or only contains headers.", "error");
-                }
-
-                // Smart header row detection — scan first 20 rows to find the real header
-                let headerRowIdx = 0;
-                let headers = [];
-                for (let r = 0; r < Math.min(20, jsonData.length); r++) {
-                    const row = jsonData[r];
-                    const rowStr = row.map(h => String(h || '').trim().toLowerCase()).join(' ');
-                    // A header row will contain typical field keywords
-                    if (rowStr.includes('name') || rowStr.includes('item') || rowStr.includes('product')) {
-                        headerRowIdx = r;
-                        headers = row.map(h => String(h || '').trim().toLowerCase());
-                        break;
-                    }
-                }
-                if (headers.length === 0) {
-                    headers = jsonData[0].map(h => String(h || '').trim().toLowerCase());
-                }
-
-                // Prefer 'sale price' / 'selling price' / 'sp' over 'rate' / 'mrp' / 'cost'
-                // to show the price customers actually pay
-                const categoryIdx = headers.findIndex(h => h.includes('category') || h.includes('aisle') || h.includes('group') || h.includes('dept'));
-                const nameIdx = headers.findIndex(h => h === 'item name' || h === 'product name' || h === 'item' || h.includes('name') || h.includes('product') || h.includes('description') || h.includes('desc'));
-                // Prefer sale price first, then MRP, then rate, then cost
-                let priceIdx = headers.findIndex(h => h === 'sale price' || h === 'selling price' || h === 'sp' || h === 'saleprice');
-                if (priceIdx === -1) priceIdx = headers.findIndex(h => h === 'mrp');
-                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('sale') && h.includes('price'));
-                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('selling'));
-                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('price') || h.includes('rate') || h.includes('mrp'));
-                if (priceIdx === -1) priceIdx = headers.findIndex(h => h.includes('cost'));
-                const stockIdx = headers.findIndex(h => h.includes('stock') || h.includes('status') || h.includes('avail') || (h.includes('qty') && !h.includes('qtyi')));
-
-                if (nameIdx === -1) {
-                    return setImportStatus("Could not find a product name column. Please check your file has a column called 'Item Name', 'Product Name', or 'Name'.", "error");
-                }
-
-                _parsedCsvRows = [];
-                const tbody = document.getElementById('csvPreviewBody');
-                tbody.innerHTML = '';
-
-                let validRowIndex = 0;
-                let htmlChunks = [];
-                // Start reading from the row AFTER the detected header row
-                for (let i = headerRowIdx + 1; i < jsonData.length; i++) {
-                    const row = jsonData[i];
-                    if (!row || row.length === 0) continue;
-
-                    const name = String(row[nameIdx] || '').trim();
-                    let aisle = categoryIdx !== -1 ? String(row[categoryIdx] || '').trim() : "";
-                    if (!aisle && name) {
-                        aisle = autoCategorize(name);
-                    }
-                    let rawPrice = "0";
-                    if (priceIdx !== -1 && row[priceIdx] !== undefined) {
-                        rawPrice = String(row[priceIdx]);
-                    }
-                    const price = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0;
-
-                    let stockStatus = "in_stock";
-                    if (stockIdx !== -1 && row[stockIdx] !== undefined) {
-                        const rawStock = String(row[stockIdx]).trim().toLowerCase();
-                        if (rawStock === "0" || rawStock === "out of stock" || rawStock === "no" || rawStock === "nil" || rawStock === "sold out" || rawStock === "out_of_stock") {
-                            stockStatus = "out_of_stock";
-                        }
-                    }
-
-                    if (!name) continue;
-
-                    _parsedCsvRows.push({ aisle: aisle || "Other", name, price, stock_status: stockStatus });
-                    
-                    if (validRowIndex < 50) {
-                        htmlChunks.push(`
-                            <tr>
-                                <td>${validRowIndex + 1}</td>
-                                <td>${aisle || "Other"}</td>
-                                <td>${name}</td>
-                                <td>₹${price.toFixed(2)}</td>
-                                <td>
-                                    <span style="font-size:11px; font-weight:bold; padding:2px 6px; border-radius:99px; ${stockStatus === 'in_stock' ? 'background:#e8f5ed; color:#1a7a4c' : 'background:#fee2e2; color:#ef4444'}">
-                                        ${stockStatus === 'in_stock' ? 'In Stock' : 'Out of Stock'}
-                                    </span>
-                                </td>
-                            </tr>
-                        `);
-                    }
-                    validRowIndex++;
-                }
-
-                if (_parsedCsvRows.length === 0) {
-                    return setImportStatus("No valid products found in the file.", "error");
-                }
-
-                if (validRowIndex > 50) {
-                    htmlChunks.push(`
-                        <tr>
-                            <td colspan="5" style="text-align:center; color:#6b7280; font-style:italic; padding:15px; background:#f9fafb;">
-                                💡 Showing first 50 rows of preview. ${validRowIndex - 50} more products are loaded and ready to import!
-                            </td>
-                        </tr>
-                    `);
-                }
-
-                tbody.innerHTML = htmlChunks.join('');
-
-                if (_parsedCsvRows.length === 0) {
-                    return setImportStatus("No valid products found in the file.", "error");
-                }
-
-                document.getElementById('csvRowCount').textContent = _parsedCsvRows.length;
-                document.getElementById('csvPreviewWrap').style.display = 'block';
-                setImportStatus('', '');
+                const ws = workbook.Sheets[workbook.SheetNames[0]];
+                processSheetData(XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }));
             } catch (err) {
-                console.error(err);
-                setImportStatus(`Failed to parse file: ${err.message}`, "error");
+                setImportStatus(`Failed to parse file: ${err.message}`, 'error');
             }
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    // ── Shared pipeline used by both file upload & Google Sheets fetch ──────────
+    function processSheetData(jsonData) {
+        if (!jsonData || jsonData.length <= 1) {
+            return setImportStatus('The file / sheet is empty or only contains headers.', 'error');
+        }
+
+        // ── Step 1: Find the real header row (scan first 20 rows) ─────────────
+        let headerRowIdx = 0;
+        let headers = [];
+        for (let r = 0; r < Math.min(20, jsonData.length); r++) {
+            const rowStr = jsonData[r].map(h => String(h || '').trim().toLowerCase()).join(' ');
+            if (rowStr.includes('item name') || rowStr.includes('item') ||
+                rowStr.includes('name') || rowStr.includes('product')) {
+                headerRowIdx = r;
+                headers = jsonData[r].map(h => String(h || '').trim().toLowerCase());
+                break;
+            }
+        }
+        if (headers.length === 0) {
+            headers = jsonData[0].map(h => String(h || '').trim().toLowerCase());
+        }
+
+        // ── Step 2: Map columns — will be locked to exact names after user input ─
+        const nameIdx     = headers.findIndex(h => h === 'item name' || h === 'product name'
+                              || h.includes('name') || h.includes('product') || h.includes('desc'));
+        const priceIdx    = (() => {
+            let idx = headers.findIndex(h => h === 'sale price' || h === 'selling price' || h === 'sp');
+            if (idx === -1) idx = headers.findIndex(h => h === 'mrp');
+            if (idx === -1) idx = headers.findIndex(h => h.includes('sale') && h.includes('price'));
+            if (idx === -1) idx = headers.findIndex(h => h.includes('selling'));
+            if (idx === -1) idx = headers.findIndex(h => h.includes('price') || h.includes('rate') || h.includes('mrp'));
+            if (idx === -1) idx = headers.findIndex(h => h.includes('cost'));
+            return idx;
+        })();
+        const categoryIdx = headers.findIndex(h => h.includes('category') || h.includes('aisle')
+                              || h.includes('group') || h.includes('dept'));
+        const stockIdx    = headers.findIndex(h => h.includes('stock') || h.includes('status')
+                              || h.includes('avail'));
+
+        if (nameIdx === -1) {
+            return setImportStatus(
+                "❌ Could not find a product name column. Expected a column called 'Item Name', 'Product Name', or 'Name'.",
+                'error'
+            );
+        }
+
+        // ── Step 3: Build rows ────────────────────────────────────────────────
+        _parsedCsvRows = [];
+        const htmlChunks = [];
+        let validCount = 0;
+
+        for (let i = headerRowIdx + 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            if (!row || row.every(c => !c)) continue;
+
+            const name = String(row[nameIdx] || '').trim();
+            if (!name) continue;
+
+            let aisle = categoryIdx !== -1 ? String(row[categoryIdx] || '').trim() : '';
+            if (!aisle) aisle = autoCategorize(name);
+
+            const rawPrice = priceIdx !== -1 ? String(row[priceIdx] || '0') : '0';
+            const price    = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0;
+
+            let stockStatus = 'in_stock';
+            if (stockIdx !== -1 && row[stockIdx] !== undefined) {
+                const s = String(row[stockIdx]).trim().toLowerCase();
+                if (s === '0' || s === 'out of stock' || s === 'no' || s === 'nil'
+                    || s === 'sold out' || s === 'out_of_stock') {
+                    stockStatus = 'out_of_stock';
+                }
+            }
+
+            _parsedCsvRows.push({ aisle: aisle || 'Other', name, price, stock_status: stockStatus });
+
+            if (validCount < 50) {
+                htmlChunks.push(`
+                    <tr>
+                        <td>${validCount + 1}</td>
+                        <td>${aisle || 'Other'}</td>
+                        <td>${name}</td>
+                        <td>₹${price.toFixed(2)}</td>
+                        <td><span style="font-size:11px;font-weight:bold;padding:2px 6px;border-radius:99px;
+                            ${stockStatus === 'in_stock' ? 'background:#e8f5ed;color:#1a7a4c' : 'background:#fee2e2;color:#ef4444'}">
+                            ${stockStatus === 'in_stock' ? 'In Stock' : 'Out of Stock'}
+                        </span></td>
+                    </tr>`);
+            }
+            validCount++;
+        }
+
+        if (_parsedCsvRows.length === 0) {
+            return setImportStatus('No valid products found. Please check the file.', 'error');
+        }
+
+        if (validCount > 50) {
+            htmlChunks.push(`<tr><td colspan="5" style="text-align:center;color:#6b7280;font-style:italic;padding:15px;background:#f9fafb;">
+                💡 Showing first 50 rows. ${validCount - 50} more products are queued and ready to import!
+            </td></tr>`);
+        }
+
+        document.getElementById('csvPreviewBody').innerHTML = htmlChunks.join('');
+        document.getElementById('csvRowCount').textContent  = _parsedCsvRows.length;
+        document.getElementById('csvPreviewWrap').style.display = 'block';
+        setImportStatus('', '');
+    }
+
+
+    async function fetchFromGoogleSheet() {
+        const rawUrl = document.getElementById('gsheetUrl').value.trim();
+        if (!rawUrl) return setImportStatus('Please paste a Google Sheets link first.', 'error');
+
+        // Convert any Google Sheets URL to its CSV export equivalent
+        let csvUrl = rawUrl;
+        const sheetIdMatch = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+        if (sheetIdMatch) {
+            // Extract optional gid (tab id)
+            const gidMatch = rawUrl.match(/[#&?]gid=([0-9]+)/);
+            const gid = gidMatch ? gidMatch[1] : '0';
+            csvUrl = `https://docs.google.com/spreadsheets/d/${sheetIdMatch[1]}/export?format=csv&gid=${gid}`;
+        }
+
+        setImportStatus('⏳ Fetching sheet from Google…', 'info');
+        try {
+            const resp = await fetch(csvUrl);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status} — make sure the sheet is set to "Anyone with the link can view"`);
+
+            const csvText = await resp.text();
+
+            // Parse CSV text using SheetJS
+            const workbook = XLSX.read(csvText, { type: 'string' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+            if (jsonData.length <= 1) {
+                return setImportStatus('The sheet appears to be empty.', 'error');
+            }
+
+            setImportStatus('', '');
+            // Reuse the same processing pipeline as file upload
+            processSheetData(jsonData);
+        } catch (err) {
+            setImportStatus(`❌ Could not load sheet: ${err.message}`, 'error');
+        }
     }
 
     function setImportStatus(msg, type) {
